@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'uiApp',
+    'rest_framework_jwt',
     'rest_framework'
 
 ]
@@ -51,7 +52,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
 
 ]
 
@@ -78,7 +78,7 @@ TEMPLATES = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
-    ['http://127.0.0.1:8080','http://192.168.1.100:8080']
+    ['http://127.0.0.1:8080', 'http://192.168.1.100:8080']
 )
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
@@ -167,12 +167,18 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # 使用JWT进行授权
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication'
     ),
 }
 
 import datetime
+
 JWT_AUTH = {
     # 设置有效期
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1)
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=1),
+    'JWT_RESPONSE_PAYLOAD_HANDLER':'uiApp.utils.my_response.my_jwt_response_payload_handler',
+    'JWT_AUTH_HEADER_PREFIX': 'JWT'
 }
 
+APPEND_SLASH = False

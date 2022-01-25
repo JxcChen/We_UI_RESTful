@@ -1,33 +1,49 @@
 import json
 import os
 import shutil
-
+import hashlib
 from django import http
+from django.contrib import auth
+from django.contrib.auth import login
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import render
 from django.views import View
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from uiApp.models import *
 
-
 # Create your views here.
+from uiApp.utils.my_loginview import LoginRequiredView
 
-def login(request):
-    requestData = json.loads(request.body.decode())
-    username = requestData['username']
-    password = requestData['password']
-    if not username:
-        return http.JsonResponse({'code': 2, 'msg': '用户名不能为空'})
-    if not password:
-        return http.JsonResponse({'code': 2, 'msg': '密码不能为空'})
-    count = DB_tester.objects.filter(username=username,password=password).count()
-    if count == 0:
-        return http.JsonResponse({'code': 0, 'msg': '用户名或密码错误'})
-    else:
-        # 生成token
-        pass
 
-class ProjectInfoView(View):
+class UserView(View):
+    def post(self, request):
+        requestData = json.loads(request.body.decode())
+        username = requestData['username']
+        password = requestData['password']
+        if not username:
+            return http.JsonResponse({'code': 2, 'msg': '用户名不能为空'})
+        if not password:
+            return http.JsonResponse({'code': 2, 'msg': '密码不能为空'})
+        user = auth.authenticate(username=username, password=password)
+        if not user:
+            return http.JsonResponse({'code': 0, 'msg': '用户名或密码错误'})
+        else:
+            # 生成token
+            sha = hashlib.sha1(str)
+            encrypts = sha.hexdigest()
+            login(request, user)
+            request.session.set_expiry(3600 * 3)
+            return http.JsonResponse({'code': 1, 'msg': '登录成功','data':{'user':user.usernmae,'id':user.id}})
 
+
+class ProjectInfoView(LoginRequiredView):
+    # 标记需要进行jwt验证
+    # authentication_classes = [JSONWebTokenAuthentication,BasicAuthentication]
+    # permission_classes = [IsAuthenticated,]
     def get(self, request):
         """
         获取项目列表
@@ -129,7 +145,7 @@ class ProjectInfoView(View):
         return http.JsonResponse({'code': 1, 'msg': '删除成功'})
 
 
-class CaseInfoView(View):
+class CaseInfoView(LoginRequiredView):
     def get(self, request, pk):
         """
         获取项目对应的所有用例
