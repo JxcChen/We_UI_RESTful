@@ -18,5 +18,5 @@ from django.urls import path,include
 from uiApp.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/',include('uiApp.urls')),
+    path('api/', include('model serializer.urls')),
 ]

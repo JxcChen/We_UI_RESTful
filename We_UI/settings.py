@@ -163,10 +163,10 @@ STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',  # 使用JWT进行权限验证
+        # 'rest_framework.permissions.IsAuthenticated',  # 使用JWT进行权限验证
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # 使用JWT进行授权
+        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # 使用JWT进行授权
         # 'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework.authentication.BasicAuthentication'
     ),
