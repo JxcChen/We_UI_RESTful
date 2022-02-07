@@ -1,54 +1,68 @@
 from django import http
 
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from uiApp.models import DB_project
-from uiApp.serializer import ProjectSerializer
+from uiApp.models import *
+from uiApp.serializer import *
+from uiApp.utils.return_data import return_json_data
+from django.db.models import Q
 
 
-class ProjectListView(GenericAPIView):
-    # 设置queryset 和 serializer_class属性
-    # queryset : 目标model的全部数据
-    # serializer_class: 序列化器
-    queryset = DB_project.objects.all()
-    serializer_class = ProjectSerializer
-
+class ProjectListView(APIView):
     def get(self, request):
-        projects = self.get_queryset()
-        pro_list = self.get_serializer(instance=projects, many=True)
-        return http.JsonResponse({'code': 0, ',msg': '成功', 'data': pro_list.data})
+        query_data = request.query_params
+        user_id = query_data['user_id']
+        pro_list = list(DB_pro_user.objects.filter(user_id=user_id).values('pro_id'))
+        res_list = []
+        for project in pro_list:
+            pro = DB_project.objects.get(id=project['pro_id'])
+            res_list.append(pro)
+        serializer = ProjectSerializer(instance=res_list, many=True)
+        return Response(return_json_data(1, '成功', serializer.data))
 
     def post(self, request):
-        request_data = request.data
-        # 进行反序列化
-        project = self.get_serializer(data=request_data)
-        # 进行参数校验 raise_exception:有异常直接抛出
-        project.is_valid(raise_exception=True)
-        # 入库  要现在序列化器中重写 create方法
-        res = project.save()
-        return Response({'code': 0, ',msg': '成功', 'data': project.data}, status=status.HTTP_201_CREATED)
+        query_data = request.data
+        # 先判断数据库中是否已存在同名项目
+        is_exit = True if len(DB_project.objects.filter(name=query_data['name'])) > 0 else False
+        if is_exit:
+            return Response(return_json_data(3,'该项目已存在',''),status=status.HTTP_200_OK)
+        else:
+            pro = ProjectSerializer(data=query_data)
+            # 先将新增的项目落库
+            pro.is_valid(raise_exception=True)
+            pro_instance = pro.save()
+            # 将项目和用户存入中间表
+            pro_user = {'pro_id': pro_instance.id, 'user_id': int(pro_instance.author)}
+            user_pro = UserProSerializers(data=pro_user)
+            user_pro.is_valid(raise_exception=True)
+            user_pro.save()
+            res_pro = ProjectSerializer(instance=pro_instance).data
+            return Response(return_json_data(1, '成功', res_pro))
 
 
-class ProjectDetailView(GenericAPIView):
-    queryset = DB_project.objects.all()
-    serializer_class = ProjectSerializer
+class ProjectDetailView(APIView):
+    def put(self,request,pk):
+        query_data = request.data
+        # 先判断 是否已存在相同名称项目
+        is_exit = True if len(DB_project.objects.filter(~Q(id=pk), name=query_data['name'])) else False
+        if is_exit:
+            return Response(return_json_data(3,'该项目已存在',''),status=status.HTTP_200_OK)
+        else:
+            # 获取待修改的项目
+            old_pro = DB_project.objects.get(id=pk)
+            # 使用序列化器进行修改
+            pro = ProjectSerializer(data=query_data,instance=old_pro)
+            # 检测字段正确性
+            pro.is_valid(raise_exception=True)
+            # 进行修改
+            pro.save()
+            new_pro = DB_project.objects.get(id=pk)
+            res_pro = ProjectSerializer(instance=new_pro).data
+            return Response(return_json_data(1, '修改成功', res_pro),status=status.HTTP_201_CREATED)
 
-    def get(self, request, pk):
-        project = self.get_object()
-        serializer = self.get_serializer(instance=project)
-        return http.JsonResponse({'code': 0, ',msg': '成功', 'data': serializer.data}, status=status.HTTP_200_OK)
-
-    def put(self, request, pk):
-        project = self.get_object()
-        request_data = request.data
-        serializer = self.get_serializer(instance=project, data=request_data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'code': 0, ',msg': '成功', 'data': project.data}, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, pk):
-        DB_project.objects.filter(id=pk).delete()
-        return Response({'code': 0, ',msg': '成功'}, status=status.HTTP_204_NO_CONTENT)
+    def delete(self,request,pk):
+        DB_project.objects.get(id=pk).delete()
+        DB_pro_user.objects.get(pro_id=pk).delete()
+        return Response(return_json_data(1, '删除成功', ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)

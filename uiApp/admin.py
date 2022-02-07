@@ -5,3 +5,4 @@ from uiApp.models import *
 admin.site.register(DB_project)
 admin.site.register(DB_case)
 admin.site.register(DB_tester)
+admin.site.register(DB_pro_user)

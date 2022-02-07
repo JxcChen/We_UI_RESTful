@@ -163,10 +163,10 @@ STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        # 'rest_framework.permissions.IsAuthenticated',  # 使用JWT进行权限验证
+        'rest_framework.permissions.IsAuthenticated',  # 使用JWT进行权限验证
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # 使用JWT进行授权
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # 使用JWT进行授权
         # 'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework.authentication.BasicAuthentication'
     ),
@@ -176,7 +176,7 @@ import datetime
 
 JWT_AUTH = {
     # 设置有效期
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=1),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
     'JWT_RESPONSE_PAYLOAD_HANDLER':'uiApp.utils.my_response.my_jwt_response_payload_handler',
     'JWT_AUTH_HEADER_PREFIX': 'JWT'
 }
