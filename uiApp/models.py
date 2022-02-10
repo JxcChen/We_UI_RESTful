@@ -16,7 +16,7 @@ class DB_project(models.Model):
 class DB_case(models.Model):
     name = models.CharField(max_length=30)
     project_id = models.CharField(max_length=20)
-    script_name = models.CharField(max_length=30, null=True)
+    script_name = models.CharField(max_length=30, null=True, default='-')
     is_thread = models.IntegerField(default=1)
     retry_count = models.IntegerField(default=1)
     author = models.CharField(max_length=30)
