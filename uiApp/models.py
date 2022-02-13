@@ -6,6 +6,7 @@ class DB_project(models.Model):
     name = models.CharField(max_length=30)
     host = models.CharField(max_length=200)
     author = models.CharField(max_length=50)
+    author_name = models.CharField(max_length=40,default="-")
     max_threads = models.IntegerField(default=1)
     auto_host = models.CharField(max_length=200, null=True)
 

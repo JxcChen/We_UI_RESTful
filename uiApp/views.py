@@ -41,6 +41,7 @@ class ProjectListView(APIView):
     # 新增项目
     def post(self, request):
         query_data = request.data
+        query_data['author_name'] = str(request.user)
         # 先判断数据库中是否已存在同名项目
         is_exit = True if len(DB_project.objects.filter(name=query_data['name'])) > 0 else False
         if is_exit:
@@ -91,6 +92,32 @@ class ProjectDetailView(APIView):
         DB_project.objects.get(id=pk).delete()
         DB_pro_user.objects.get(pro_id=pk).delete()
         return Response(return_json_data(1, '删除成功', ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+
+
+# 配置协作人员
+class ProjectMemberView(APIView):
+    # 获取配置人员
+    def get(self, request):
+        request_params = request.query_params
+        pro_id = request_params['project_id']
+        # 获取当前项目的协作人员id列表
+        users = DB_pro_user.objects.filter(~Q(user_id=request.user.id), pro_id=pro_id).all().values()
+        user_list = []
+        for s in users:
+            user_list.append(s['user_id'])
+        return Response(return_json_data(1,"成功",user_list))
+
+    # 配置协作人员
+    def post(self, request):
+        query_data = request.data
+        users = query_data['users']
+        project_id = query_data['project_id']
+        # 先将原本的数据删除
+        DB_pro_user.objects.filter(~Q(user_id=request.user.id), pro_id=project_id).delete()
+        for user in users:
+            # 更新写作人员列表
+            DB_pro_user.objects.create(pro_id=project_id, user_id=user)
+        return Response(return_json_data(1, "配置成功", ""))
 
 
 class CaseListView(APIView):
@@ -198,3 +225,48 @@ class CaseExcuseView(APIView):
                         pro_id, script_name, host, script_name, case_name, str(retry_count)),
                     shell=True)
         return Response(return_json_data(1, "执行成功", ''))
+
+
+# 用户列表视图
+class UserListView(APIView):
+    # 获取用户列表
+    def get(self, request):
+        user_list = User.objects.all()
+        res_list = UserSerializers(instance=user_list, many=True).data
+        for res in res_list:
+            res.pop('password')
+        return Response(return_json_data(1, "成功", res_list), status=status.HTTP_200_OK)
+
+    def post(self, request):
+        request_data = request.data
+        current_user = request.user.id
+        if current_user != '1':
+            return Response(return_json_data(-3, "无权限", ''), status=status.HTTP_200_OK)
+        username = request_data['username']
+        password = request_data['password']
+        if not username:
+            return Response(return_json_data(-1, "用户名不能为空", ''))
+        if not password:
+            return Response(return_json_data(-1, "密码不能为空", ''))
+        if len(User.objects.filter(username=username)) > 0:
+            return Response(return_json_data(-2, "该用户已存在", ''))
+        User.objects.create_user(**request_data)
+        return Response(return_json_data(1, "创建成功", ''), status=status.HTTP_201_CREATED)
+
+
+class UserDetailView(APIView):
+    # 获取用户列表
+    def put(self, request, user_id):
+        request_data = request.data
+        current_user = request.user.id
+        if current_user != 1 and current_user != user_id:
+            return Response(return_json_data(-3, "无权限", ''), status=status.HTTP_200_OK)
+        del request_data['user_type']
+        User.objects.filter(id=user_id).update(**request_data)
+        return Response(return_json_data(1, "修改成功", ''), status=status.HTTP_201_CREATED)
+
+    def delete(self, request, user_id):
+        if request.user.id != 1:
+            return Response(return_json_data(-3, "无权限", ''), status=status.HTTP_200_OK)
+        User.objects.filter(id=user_id).delete()
+        return Response(return_json_data(1, "创建成功", ''))

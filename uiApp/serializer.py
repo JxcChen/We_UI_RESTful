@@ -34,7 +34,7 @@ class UserSerializers(serializers.ModelSerializer):
     class Meta:
         # 指定model
         model = User
-        fields = "__all__"
+        fields = ["id","username","password","email","is_superuser"]
 
 
 # 定义用例序列化器
