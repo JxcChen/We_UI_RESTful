@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^user/$', UserListView.as_view()),
     url(r'^user/(?P<user_id>\d+)/$', UserDetailView.as_view()),
     url(r'^teamMember/$', ProjectMemberView.as_view()),
+    url(r'^case/report/(?P<case_id>\d+)/$', CaseReportView.as_view()),
     url(r'^login/$', obtain_jwt_token)
 
 ]

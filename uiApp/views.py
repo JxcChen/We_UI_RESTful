@@ -3,6 +3,9 @@ import shutil
 import subprocess
 
 from django import http
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views import View
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -89,8 +92,13 @@ class ProjectDetailView(APIView):
 
     # 删除项目
     def delete(self, request, pk):
-        DB_project.objects.get(id=pk).delete()
-        DB_pro_user.objects.get(pro_id=pk).delete()
+
+        project = DB_project.objects.get(id=pk)
+        print(request.user.id)
+        if request.user.id != 1 and project.author != request.user.id:
+            return Response(return_json_data(-3, '无权限', ''))
+        project.delete()
+        DB_pro_user.objects.filter(pro_id=pk).delete()
         return Response(return_json_data(1, '删除成功', ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
 
 
@@ -197,6 +205,7 @@ class CaseScriptView(APIView):
         return Response({'code': 1, 'msg': '上传成功'})
 
 
+# 执行脚本视图
 class CaseExcuseView(APIView):
     # 执行脚本
     def get(self, request, case_id):
@@ -225,6 +234,20 @@ class CaseExcuseView(APIView):
                         pro_id, script_name, host, script_name, case_name, str(retry_count)),
                     shell=True)
         return Response(return_json_data(1, "执行成功", ''))
+
+
+class CaseReportView(APIView):
+    # 查看测试报告
+    def get(self,request, case_id):
+        case = DB_case.objects.get(id=int(case_id))
+        case_name = case.name
+        # 返回测试报告路径
+        # 先判断用例是否已经执行
+        report_path = 'client_%s/report/%s.html' % (case.project_id, case_name)
+        if os.path.exists('my_client/'+report_path):
+            return render(request, report_path)
+        else:
+            return Response(return_json_data(3, "用例还未执行", ''))
 
 
 # 用户列表视图
