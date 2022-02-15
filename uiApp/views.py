@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import threading
 
 from django import http
 from django.http import JsonResponse
@@ -15,6 +16,7 @@ from uiApp.models import *
 from uiApp.serializer import *
 from uiApp.utils.return_data import return_json_data
 from django.db.models import Q
+from uiApp.constant import OPERATION
 
 
 class ProjectListView(APIView):
@@ -113,7 +115,7 @@ class ProjectMemberView(APIView):
         user_list = []
         for s in users:
             user_list.append(s['user_id'])
-        return Response(return_json_data(1,"成功",user_list))
+        return Response(return_json_data(1, "成功", user_list))
 
     # 配置协作人员
     def post(self, request):
@@ -236,15 +238,77 @@ class CaseExcuseView(APIView):
         return Response(return_json_data(1, "执行成功", ''))
 
 
+# 并发执行用例
+class ConcurrentExcuseCaseView(APIView):
+    # 并发执行用例
+    def get(self, request):
+        request_data = request.query_params
+        project_id = request_data['project_id']
+        # 获取该项目下需要并发执行的用例以及最大并发数
+        concurrent_case = DB_case.objects.filter(project_id=project_id, is_thread=1)
+        project = DB_project.objects.get(id=project_id)
+
+        # 声明一个执行用例的方法
+        def concurrent_run(testcase):
+            # 先进行非空判断
+            if testcase.script_name not in ['', ' ', None, 'None']:
+                # 判断是脚本形式还是excel形式用例
+                if '.py' in testcase.script_name:
+                    # 根据操作系统的不同 执行不同命令
+                    if OPERATION == 'Windows':
+                        subprocess.call(
+                            'python my_client/client_%s/case/%s %s %s %s' % (
+                                testcase.project_id, testcase.script_name, project.auto_host, testcase.script_name,
+                                testcase.name), shell=True
+                        )
+                    else:
+                        subprocess.call(
+                            'python3 my_client/client_%s/case/%s %s %s %s' % (
+                                testcase.project_id, testcase.script_name, project.auto_host, testcase.script_name,
+                                testcase.name), shell=True
+                        )
+                elif '.xls' in testcase.script:
+                    if OPERATION == "Windows":
+                        subprocess.call('python my_client/client_%s/public/xls_to_script.py %s %s %s' % (
+                            testcase.pro_id, project.auto_host, testcase.script_name, testcase.name), shell=True)
+                    else:
+                        subprocess.call('python3 my_client/client_%s/public/xls_to_script.py %s %s %s' % (
+                            testcase.pro_id, project.auto_host, testcase.script_name, testcase.name), shell=True)
+
+        # 声明一个线程列表
+        threads_pool = []
+        # 根据并发的用例来创建多个线程
+        for case in concurrent_case:
+            # target:指定线程执行的函数  args:传给函数的参数 需要传入元祖
+            t = threading.Thread(target=concurrent_run, args=(case,))
+            # 设置守护线程
+            t.setDaemon(True)
+            threads_pool.append(t)
+
+        # 遍历执行用例
+        max_threads = project.max_threads
+        for i in range(0, len(threads_pool), max_threads):
+            # 获取最大并发数内的执行线程
+            tmp = threads_pool[i:i + max_threads]
+            # 遍历执行
+            for t in tmp:
+                t.start()  # 执行线程
+
+            for t in tmp:
+                t.join()
+
+        return Response(return_json_data(1, "执行完成", ""))
+
+
 class CaseReportView(APIView):
     # 查看测试报告
-    def get(self,request, case_id):
+    def get(self, request, case_id):
         case = DB_case.objects.get(id=int(case_id))
         case_name = case.name
         # 返回测试报告路径
         # 先判断用例是否已经执行
         report_path = 'client_%s/report/%s.html' % (case.project_id, case_name)
-        if os.path.exists('my_client/'+report_path):
+        if os.path.exists('my_client/' + report_path):
             return render(request, report_path)
         else:
             return Response(return_json_data(3, "用例还未执行", ''))

@@ -350,7 +350,6 @@ a.popup_link:hover {
     <td name='sum'>%(Pass)s</td>
     <td name='sum'>%(fail)s</td>
     <td name='sum'>%(error)s</td>
-    <td><button class="wqrf_button" style="background-color: #ffc2e6" onclick='javascript:location.reload()'>刷新</button></td>
 
 </tr>
 </table>
