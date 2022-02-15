@@ -1,10 +1,12 @@
 import os
+import re
 import shutil
 import subprocess
 import threading
+import time
 
 from django import http
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views import View
 
@@ -257,15 +259,15 @@ class ConcurrentExcuseCaseView(APIView):
                     # 根据操作系统的不同 执行不同命令
                     if OPERATION == 'Windows':
                         subprocess.call(
-                            'python my_client/client_%s/case/%s %s %s %s' % (
+                            'python my_client/client_%s/case/%s %s %s %s %s' % (
                                 testcase.project_id, testcase.script_name, project.auto_host, testcase.script_name,
-                                testcase.name), shell=True
+                                testcase.name, str(testcase.retry_count)), shell=True
                         )
                     else:
                         subprocess.call(
-                            'python3 my_client/client_%s/case/%s %s %s %s' % (
+                            'python3 my_client/client_%s/case/%s %s %s %s %s' % (
                                 testcase.project_id, testcase.script_name, project.auto_host, testcase.script_name,
-                                testcase.name), shell=True
+                                testcase.name, str(testcase.retry_count)), shell=True
                         )
                 elif '.xls' in testcase.script:
                     if OPERATION == "Windows":
@@ -300,6 +302,7 @@ class ConcurrentExcuseCaseView(APIView):
         return Response(return_json_data(1, "执行完成", ""))
 
 
+# 查看用例报告视图
 class CaseReportView(APIView):
     # 查看测试报告
     def get(self, request, case_id):
@@ -312,6 +315,44 @@ class CaseReportView(APIView):
             return render(request, report_path)
         else:
             return Response(return_json_data(3, "用例还未执行", ''))
+
+
+# 查看报告总结
+class CaseReportSummaryView(APIView):
+    def get(self, request, pro_id=''):
+        # 获取项目对应的全部用例
+        pro_name = DB_project.objects.filter(id=pro_id)[0].name
+        cases = list(DB_case.objects.filter(project_id=pro_id).values())
+        # 声明结果变量
+        res = '<h3>【%s项目用例总结】</h3>' % pro_name
+        total_case = 0
+        pass_case = 0
+        fail_case = 0
+        # 存放错误用例名称
+        fail_case_list = []
+        # 遍历用例报告获取总结数据
+        for case in cases:
+            try:
+                with open(r'my_client/client_%s/report/%s.html' % (pro_id, case['name']), 'r', encoding='utf-8') as f:
+                    # 读取报告内容
+                    content = f.read()
+                    # 使用正则匹配结果
+                    results = re.findall(r"<td name='sum'>(.*?)</td>", content)
+                    total_case += int(results[0])
+                    pass_case += int(results[1])
+                    fail_or_error = int(results[2]) + int(results[3])
+                    fail_case += fail_or_error
+                    if fail_or_error > 0:
+                        fail_case_list.append(case['name'])
+            except FileNotFoundError as e:
+                # 如果没找到文件的话表示该用例还未执行  直接跳过即可
+                continue
+            except Exception as e:
+                raise e
+        res += "当前总共有【%s】条用例。<br/>通过用例数：%s 失败用例数：%s<br/>" % (str(total_case), str(pass_case), str(fail_case))
+        res += "失败用例名称：" + ",".join(fail_case_list) + "<br/>"
+        res += "想查看用例结果详情可以点击用例后的报告按钮"
+        return Response(return_json_data(1, "获取成功", res))
 
 
 # 用户列表视图
@@ -341,6 +382,7 @@ class UserListView(APIView):
         return Response(return_json_data(1, "创建成功", ''), status=status.HTTP_201_CREATED)
 
 
+# 用户详情视图
 class UserDetailView(APIView):
     # 获取用户列表
     def put(self, request, user_id):
@@ -357,3 +399,37 @@ class UserDetailView(APIView):
             return Response(return_json_data(-3, "无权限", ''), status=status.HTTP_200_OK)
         User.objects.filter(id=user_id).delete()
         return Response(return_json_data(1, "创建成功", ''))
+
+
+# 下载调试包
+# class ClientView(APIView):
+# 下载调试包
+def download(request, project_id):
+    # 1 声明压缩包名称
+    zip_file = 'my_client/CLIENT_%s.zip' % project_id
+    # 2 对原有的压缩包进行删除
+    try:
+        os.remove(zip_file)
+    except:
+        pass
+    # 3 调用压缩方法对文件进行压缩
+    from uiApp.utils.zip_utils import zip_file_path
+    zip_file_path('my_client/client_%s' % project_id, 'my_client', 'CLIENT_%s.zip' % project_id)
+    time.sleep(1)
+    # 4 封装响应体 将压缩包进行返回
+    try:
+        file = open(zip_file, 'rb')
+    except:
+        return Response(return_json_data(3, "未找到对应的调试包", ''))
+    response = HttpResponse(file)
+    # 设置请求头
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="%s"' % 'CLIENT_%s.zip' % project_id
+    time.sleep(1)
+    # 5 删除压缩文件
+    try:
+        os.remove(zip_file)
+    except:
+        pass
+    # 6 返回响应
+    return response
