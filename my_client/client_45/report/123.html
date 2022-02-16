@@ -236,10 +236,10 @@ function showOutput(id, name) {
     <div style="border: 1px solid #ffffff;border-radius: 10px;box-shadow: 2px 2px 12px #aeaeae;padding-left: 30px;width: 500px">
 <p class='attribute'>小程序自动化测试平台提供</p>
 <p class='attribute'><strong>注意:</strong> 出现问题请联系管理员！</p>
-<p class='attribute'><strong>报告生成日期:</strong> 2022-02-15 16:54:18</p>
-<p class='attribute'><strong>用例执行时间:</strong> 0:00:05.796464秒</p>
+<p class='attribute'><strong>报告生成日期:</strong> 2022-02-16 09:19:03</p>
+<p class='attribute'><strong>用例执行时间:</strong> 0:00:12.685259秒</p>
 <p class='attribute'><strong>用例执行结果:</strong> 通过 1, 报错 1</p>
-<p class='attribute'><strong>执行系统:</strong> darwin</p>
+<p class='attribute'><strong>执行系统:</strong> win32</p>
 
 <br>
 </div>
@@ -288,7 +288,7 @@ function showOutput(id, name) {
 </tr>
 
 <tr id='ft1.1' class='none'>
-    <td class='errorCase'><div class='testcase'>test_01</div></td>
+    <td class='errorCase'><div class='testcase'>test_01: 这里是用例描述</div></td>
     <td colspan='5' align='center'>
 
     <!--css div popup start-->
@@ -301,18 +301,42 @@ function showOutput(id, name) {
         </div>
         <pre>
         
-ft1.1: 执行第1次
-Traceback (most recent call last):
-  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/public/utils.py", line 154, in wrapper
-    res = case_method(**args)
-TypeError: test_01() missing 1 required positional argument: 'self'
+ft1.1: Traceback (most recent call last):
+  File "G:\python学习资料\UI自动化平台\We_UI_RESTful\my_client\client_45\case\test_py.py", line 47, in test_01
+    self.driver.find_element(*search_input).send_keys("hello world")
+  File "C:\Users\chenjinxuan1\AppData\Local\Programs\Python\Python39\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 1238, in find_element
+    return self.execute(Command.FIND_ELEMENT, {
+  File "C:\Users\chenjinxuan1\AppData\Local\Programs\Python\Python39\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 418, in execute
+    self.error_handler.check_response(response)
+  File "C:\Users\chenjinxuan1\AppData\Local\Programs\Python\Python39\lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 243, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="k"]"}
+  (Session info: chrome=97.0.4692.99)
+Stacktrace:
+Backtrace:
+	Ordinal0 [0x00C66903+2517251]
+	Ordinal0 [0x00BFF8E1+2095329]
+	Ordinal0 [0x00B02848+1058888]
+	Ordinal0 [0x00B2D448+1233992]
+	Ordinal0 [0x00B2D63B+1234491]
+	Ordinal0 [0x00B57812+1406994]
+	Ordinal0 [0x00B4650A+1336586]
+	Ordinal0 [0x00B55BBF+1399743]
+	Ordinal0 [0x00B4639B+1336219]
+	Ordinal0 [0x00B227A7+1189799]
+	Ordinal0 [0x00B23609+1193481]
+	GetHandleVerifier [0x00DF5904+1577972]
+	GetHandleVerifier [0x00EA0B97+2279047]
+	GetHandleVerifier [0x00CF6D09+534521]
+	GetHandleVerifier [0x00CF5DB9+530601]
+	Ordinal0 [0x00C04FF9+2117625]
+	Ordinal0 [0x00C098A8+2136232]
+	Ordinal0 [0x00C099E2+2136546]
+	Ordinal0 [0x00C13541+2176321]
+	BaseThreadInitThunk [0x75BBFA29+25]
+	RtlGetAppContainerNamedObjectPath [0x77077A9E+286]
+	RtlGetAppContainerNamedObjectPath [0x77077A6E+238]
 
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/public/utils.py", line 160, in wrapper
-    time.sleep(1)
-NameError: name 'time' is not defined
 
 
          <div id="div100">

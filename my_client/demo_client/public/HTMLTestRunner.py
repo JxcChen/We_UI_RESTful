@@ -515,7 +515,6 @@ class HTMLTestRunner(Template_mixin):
         self.stream = stream
         self.verbosity = verbosity
         self.env = env  # 识别本地还是线上 区别获取截图路径
-        print(self.env)
         if title is None:
             self.title = self.DEFAULT_TITLE
         else:

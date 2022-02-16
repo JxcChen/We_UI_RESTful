@@ -1,5 +1,6 @@
 import os
 import platform
+import time
 import unittest
 import requests
 from selenium import webdriver
@@ -149,16 +150,16 @@ def util_retry_case(set_up, teardown, retry_num):
     def retry_method(case_method):
         def wrapper(*arg, **args):
             for i in range(retry_num):
-                print('执行第' + str(i + 1) + '次')
                 try:
                     res = case_method(**args)
                     return res
-                except Exception:
+                except Exception as e:
                     # 执行后置前置
                     teardown(*arg)
                     set_up(*arg)
                     time.sleep(1)
-            raise Exception
+                    if i == retry_num-1:
+                        raise e
 
         return wrapper
 

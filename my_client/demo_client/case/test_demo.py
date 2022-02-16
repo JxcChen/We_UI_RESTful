@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 # 导入utils包
 # from my_client.client_10.public.utils import *
 
-if constant.OPERATION == 'Windows':
+if platform.system() == 'Windows':
     file_path = str(__file__).split("\\")[-3]
 else:
     file_path = str(__file__).split("/")[-3]

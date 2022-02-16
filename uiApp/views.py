@@ -21,6 +21,7 @@ from django.db.models import Q
 from uiApp.constant import OPERATION
 
 
+# 项目列表视图
 class ProjectListView(APIView):
     # 获取项目列表
     def get(self, request):
@@ -67,12 +68,13 @@ class ProjectListView(APIView):
             # 创建项目调试包
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             demo_path = os.path.join(base_path, 'my_client/demo_client')
-            print(res_pro)
+
             new_path = os.path.join(base_path, 'my_client/client_' + str(res_pro['id']))
             shutil.copytree(demo_path, new_path)
             return Response(return_json_data(1, '成功', res_pro))
 
 
+# 项目详情视图
 class ProjectDetailView(APIView):
     # 修改项目
     def put(self, request, pk):
@@ -98,7 +100,6 @@ class ProjectDetailView(APIView):
     def delete(self, request, pk):
 
         project = DB_project.objects.get(id=pk)
-        print(request.user.id)
         if request.user.id != 1 and project.author != request.user.id:
             return Response(return_json_data(-3, '无权限', ''))
         project.delete()
@@ -132,6 +133,7 @@ class ProjectMemberView(APIView):
         return Response(return_json_data(1, "配置成功", ""))
 
 
+# 用例列表视图
 class CaseListView(APIView):
     # 获取用例列表
     def get(self, request):
@@ -149,7 +151,6 @@ class CaseListView(APIView):
         新增用例
         """
         request_data = request.data
-        print(request_data)
         request_data['is_thread'] = int(request_data['is_thread'])
         # 获取参数
         name = request_data['name']
@@ -163,6 +164,7 @@ class CaseListView(APIView):
         return Response(return_json_data(1, '添加成功', case_dict), status=status.HTTP_200_OK)
 
 
+# 用例详情视图
 class CaseDetailView(APIView):
     # 修改用例
     def put(self, request, pro_id):
@@ -194,6 +196,7 @@ class CaseDetailView(APIView):
         return http.JsonResponse({'code': 1, 'msg': '删除成功'})
 
 
+# 上传脚本视图
 class CaseScriptView(APIView):
     # 上传脚本
     def post(self, request, pro_id):
@@ -227,7 +230,6 @@ class CaseExcuseView(APIView):
         if '.py' in script_name:
             # 根据操作系统执行脚本
             from uiApp.constant import OPERATION
-            print(OPERATION)
             if OPERATION == "Windows":
                 subprocess.call('python my_client/client_%s/case/%s %s %s %s %s' % (
                     pro_id, script_name, host, script_name, case_name, str(retry_count)),
@@ -402,8 +404,6 @@ class UserDetailView(APIView):
 
 
 # 下载调试包
-# class ClientView(APIView):
-# 下载调试包
 def download(request, project_id):
     # 1 声明压缩包名称
     zip_file = 'my_client/CLIENT_%s.zip' % project_id
@@ -433,3 +433,21 @@ def download(request, project_id):
         pass
     # 6 返回响应
     return response
+
+
+# 上传脚本视图
+class UploadUtilsView(APIView):
+    # 上传脚本
+    def post(self, request, pro_id):
+        query_data = request.data
+        utils_file = query_data['file']
+        if not utils_file:
+            return Response(return_json_data(0,'未上传脚本',''))
+        utils_file_name = str(utils_file)
+        if '.py' not in utils_file_name:
+            return Response(return_json_data(-1, '必须上传python文件', ''), status=status.HTTP_400_BAD_REQUEST)
+        # 将工具类放入对应公用包中
+        with open('my_client/client_%s/public/%s' % (pro_id, utils_file_name), 'wb') as f:
+            for content in utils_file.chunks():
+                f.write(content)
+        return Response(return_json_data(1,'上传成功',''),status=status.HTTP_201_CREATED)
