@@ -6,7 +6,7 @@ class DB_project(models.Model):
     name = models.CharField(max_length=30)
     host = models.CharField(max_length=200)
     author = models.CharField(max_length=50)
-    author_name = models.CharField(max_length=40,default="-")
+    author_name = models.CharField(max_length=40, default="-")
     max_threads = models.IntegerField(default=1)
     auto_host = models.CharField(max_length=200, null=True)
 
@@ -18,6 +18,7 @@ class DB_case(models.Model):
     name = models.CharField(max_length=30)
     project_id = models.CharField(max_length=20)
     script_name = models.CharField(max_length=30, null=True, default='-')
+    is_auto_excuse = models.IntegerField(default=0)  # 0：不参与自动化  1：参与自动化
     is_thread = models.IntegerField(default=1)
     retry_count = models.IntegerField(default=1)
     author = models.CharField(max_length=30)
@@ -40,3 +41,19 @@ class DB_tester(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# 测试任务库  后期完成
+# class DB_task(models.Model):
+#     name = models.CharField(max_length=30)
+#     case_list = models.CharField(max_length=50)
+#     author = models.CharField(max_length=30)
+#     project_id = models.IntegerField()
+#     excuse_result = models.IntegerField(default=0)  # 0: 未执行/1: 成功/2: 失败
+#     excuse_time = models.IntegerField()
+#     task_level = models.IntegerField(default=1)
+#     case_count = models.IntegerField()
+#
+#     def __str__(self):
+#         return self.name
+

@@ -65,7 +65,7 @@ class Test(unittest.TestCase):
             picture_name = "uiApp/static/res_picture/%s-%s.png" % (case_name, method_name)
         self.driver.get_screenshot_as_file(picture_name)
 
-    # @util_retry_case(setUp, tearDown, retry_num)
+    @util_retry_case(setUp, tearDown, retry_num)
     def test_01(self):
         '这里是用例描述'
         search_input = (By.ID, "su")

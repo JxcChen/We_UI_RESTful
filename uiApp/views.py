@@ -248,43 +248,18 @@ class ConcurrentExcuseCaseView(APIView):
     def get(self, request):
         request_data = request.query_params
         project_id = request_data['project_id']
+        host = request.query_params['host']
         # 获取该项目下需要并发执行的用例以及最大并发数
         concurrent_case = DB_case.objects.filter(project_id=project_id, is_thread=1)
         project = DB_project.objects.get(id=project_id)
 
-        # 声明一个执行用例的方法
-        def concurrent_run(testcase):
-            # 先进行非空判断
-            if testcase.script_name not in ['', ' ', None, 'None']:
-                # 判断是脚本形式还是excel形式用例
-                if '.py' in testcase.script_name:
-                    # 根据操作系统的不同 执行不同命令
-                    if OPERATION == 'Windows':
-                        subprocess.call(
-                            'python my_client/client_%s/case/%s %s %s %s %s' % (
-                                testcase.project_id, testcase.script_name, project.auto_host, testcase.script_name,
-                                testcase.name, str(testcase.retry_count)), shell=True
-                        )
-                    else:
-                        subprocess.call(
-                            'python3 my_client/client_%s/case/%s %s %s %s %s' % (
-                                testcase.project_id, testcase.script_name, project.auto_host, testcase.script_name,
-                                testcase.name, str(testcase.retry_count)), shell=True
-                        )
-                elif '.xls' in testcase.script:
-                    if OPERATION == "Windows":
-                        subprocess.call('python my_client/client_%s/public/xls_to_script.py %s %s %s' % (
-                            testcase.pro_id, project.auto_host, testcase.script_name, testcase.name), shell=True)
-                    else:
-                        subprocess.call('python3 my_client/client_%s/public/xls_to_script.py %s %s %s' % (
-                            testcase.pro_id, project.auto_host, testcase.script_name, testcase.name), shell=True)
-
         # 声明一个线程列表
         threads_pool = []
         # 根据并发的用例来创建多个线程
+        from uiApp.utils.utils import excuse_case
         for case in concurrent_case:
             # target:指定线程执行的函数  args:传给函数的参数 需要传入元祖
-            t = threading.Thread(target=concurrent_run, args=(case,))
+            t = threading.Thread(target=excuse_case, args=(case, project, host))
             # 设置守护线程
             t.setDaemon(True)
             threads_pool.append(t)
@@ -442,7 +417,7 @@ class UploadUtilsView(APIView):
         query_data = request.data
         utils_file = query_data['file']
         if not utils_file:
-            return Response(return_json_data(0,'未上传脚本',''))
+            return Response(return_json_data(0, '未上传脚本', ''))
         utils_file_name = str(utils_file)
         if '.py' not in utils_file_name:
             return Response(return_json_data(-1, '必须上传python文件', ''), status=status.HTTP_400_BAD_REQUEST)
@@ -450,4 +425,42 @@ class UploadUtilsView(APIView):
         with open('my_client/client_%s/public/%s' % (pro_id, utils_file_name), 'wb') as f:
             for content in utils_file.chunks():
                 f.write(content)
-        return Response(return_json_data(1,'上传成功',''),status=status.HTTP_201_CREATED)
+        return Response(return_json_data(1, '上传成功', ''), status=status.HTTP_201_CREATED)
+
+
+# 开启监控
+class MonitorView(APIView):
+    def get(self, request, project_id):
+        # 先判断监控是否已经开启
+        try:
+            # 如果没输出则会报错  报错代表未开启监控
+            if OPERATION == 'Windows':
+                res = subprocess.check_output('wmic process where caption="python.exe" get processid,commandline',
+                                              shell=True)
+                for i in str(res).split(r'\n'):
+                    if 'monitor.py %s WEB' % project_id in i:
+                        pid = re.findall(r'(\d+)', i)
+                        return Response(return_json_data(0, "监控已开启", ''), status=status.HTTP_200_OK)
+            else:
+                process = subprocess.check_output('ps -ef | grep "monitor.py %s WEB" | grep -v grep' % project_id,
+                                                  shell=True)
+                # 开启则直接返回
+                return Response(return_json_data(0, "监控已开启", ''), status=status.HTTP_200_OK)
+        # 未开启 则调用monitor开启监控
+        except:
+            pass
+
+        # 开启监控
+        def start_monitor():
+            if OPERATION == 'Windows':
+                subprocess.call('python uiApp/monitor.py %s WEB' % project_id, shell=True)
+            else:
+                subprocess.call('python3 uiApp/monitor.py %s WEB' % project_id, shell=True)
+
+        monitor_thread = threading.Thread(target=start_monitor)
+        # 设置守护线程
+        monitor_thread.setDaemon(True)
+        # 执行线程
+        monitor_thread.start()
+
+        return Response(return_json_data(1, "监控开启成功", ''), status=status.HTTP_200_OK)
