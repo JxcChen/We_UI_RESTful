@@ -275,7 +275,6 @@ class ConcurrentExcuseCaseView(APIView):
 
             for t in tmp:
                 t.join()
-
         return Response(return_json_data(1, "执行完成", ""))
 
 
@@ -462,5 +461,4 @@ class MonitorView(APIView):
         monitor_thread.setDaemon(True)
         # 执行线程
         monitor_thread.start()
-
         return Response(return_json_data(1, "监控开启成功", ''), status=status.HTTP_200_OK)

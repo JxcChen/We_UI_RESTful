@@ -1,5 +1,6 @@
 import os
 import sys
+
 import schedule
 
 path = os.path.dirname(os.path.dirname(__file__))
@@ -14,6 +15,8 @@ import django
 django.setup()
 
 from uiApp.models import *
+
+
 # 执行用例
 def excuse():
     # 获取到对应项目需要进行监控的用例
@@ -35,7 +38,6 @@ def monitor():
 
 
 if __name__ == '__main__':
-    print("++++++++++")
     pro_id = sys.argv[1]
     project = DB_project.objects.get(id=pro_id)
     monitor()
