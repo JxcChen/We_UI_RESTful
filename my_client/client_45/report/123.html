@@ -236,10 +236,10 @@ function showOutput(id, name) {
     <div style="border: 1px solid #ffffff;border-radius: 10px;box-shadow: 2px 2px 12px #aeaeae;padding-left: 30px;width: 500px">
 <p class='attribute'>小程序自动化测试平台提供</p>
 <p class='attribute'><strong>注意:</strong> 出现问题请联系管理员！</p>
-<p class='attribute'><strong>报告生成日期:</strong> 2022-02-17 22:57:21</p>
-<p class='attribute'><strong>用例执行时间:</strong> 0:00:10.856796秒</p>
+<p class='attribute'><strong>报告生成日期:</strong> 2022-02-18 14:45:00</p>
+<p class='attribute'><strong>用例执行时间:</strong> 0:00:10.683913秒</p>
 <p class='attribute'><strong>用例执行结果:</strong> 通过 1, 报错 1</p>
-<p class='attribute'><strong>执行系统:</strong> darwin</p>
+<p class='attribute'><strong>执行系统:</strong> win32</p>
 
 <br>
 </div>
@@ -302,38 +302,40 @@ function showOutput(id, name) {
         <pre>
         
 ft1.1: Traceback (most recent call last):
-  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/case/test_py.py", line 47, in test_01
+  File "G:\python学习资料\UI自动化平台\We_UI_RESTful\my_client\client_45\case\test_py.py", line 47, in test_01
     self.driver.find_element(*search_input).send_keys("hello world")
-  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 1244, in find_element
+  File "C:\Users\chenjinxuan1\AppData\Local\Programs\Python\Python39\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 1238, in find_element
     return self.execute(Command.FIND_ELEMENT, {
-  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 424, in execute
+  File "C:\Users\chenjinxuan1\AppData\Local\Programs\Python\Python39\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 418, in execute
     self.error_handler.check_response(response)
-  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/errorhandler.py", line 247, in check_response
+  File "C:\Users\chenjinxuan1\AppData\Local\Programs\Python\Python39\lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 243, in check_response
     raise exception_class(message, screen, stacktrace)
 selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="k"]"}
-  (Session info: chrome=98.0.4758.102)
+  (Session info: chrome=97.0.4692.99)
 Stacktrace:
-0   chromedriver                        0x0000000104c5ae69 chromedriver + 5160553
-1   chromedriver                        0x0000000104be5593 chromedriver + 4679059
-2   chromedriver                        0x00000001047992c8 chromedriver + 172744
-3   chromedriver                        0x00000001047ceb62 chromedriver + 392034
-4   chromedriver                        0x00000001047ced21 chromedriver + 392481
-5   chromedriver                        0x0000000104801304 chromedriver + 598788
-6   chromedriver                        0x00000001047ec3fd chromedriver + 513021
-7   chromedriver                        0x00000001047ff0ab chromedriver + 589995
-8   chromedriver                        0x00000001047ec623 chromedriver + 513571
-9   chromedriver                        0x00000001047c1dce chromedriver + 339406
-10  chromedriver                        0x00000001047c3105 chromedriver + 344325
-11  chromedriver                        0x0000000104c1623e chromedriver + 4878910
-12  chromedriver                        0x0000000104c2dd17 chromedriver + 4975895
-13  chromedriver                        0x0000000104c33a3f chromedriver + 4999743
-14  chromedriver                        0x0000000104c2e61a chromedriver + 4978202
-15  chromedriver                        0x0000000104c0abb1 chromedriver + 4832177
-16  chromedriver                        0x0000000104c4afd8 chromedriver + 5095384
-17  chromedriver                        0x0000000104c4b161 chromedriver + 5095777
-18  chromedriver                        0x0000000104c622a8 chromedriver + 5190312
-19  libsystem_pthread.dylib             0x00007ff804315514 _pthread_start + 125
-20  libsystem_pthread.dylib             0x00007ff80431102f thread_start + 15
+Backtrace:
+	Ordinal0 [0x01096903+2517251]
+	Ordinal0 [0x0102F8E1+2095329]
+	Ordinal0 [0x00F32848+1058888]
+	Ordinal0 [0x00F5D448+1233992]
+	Ordinal0 [0x00F5D63B+1234491]
+	Ordinal0 [0x00F87812+1406994]
+	Ordinal0 [0x00F7650A+1336586]
+	Ordinal0 [0x00F85BBF+1399743]
+	Ordinal0 [0x00F7639B+1336219]
+	Ordinal0 [0x00F527A7+1189799]
+	Ordinal0 [0x00F53609+1193481]
+	GetHandleVerifier [0x01225904+1577972]
+	GetHandleVerifier [0x012D0B97+2279047]
+	GetHandleVerifier [0x01126D09+534521]
+	GetHandleVerifier [0x01125DB9+530601]
+	Ordinal0 [0x01034FF9+2117625]
+	Ordinal0 [0x010398A8+2136232]
+	Ordinal0 [0x010399E2+2136546]
+	Ordinal0 [0x01043541+2176321]
+	BaseThreadInitThunk [0x75BBFA29+25]
+	RtlGetAppContainerNamedObjectPath [0x77077A9E+286]
+	RtlGetAppContainerNamedObjectPath [0x77077A6E+238]
 
 
 

@@ -19,6 +19,7 @@ from uiApp.serializer import *
 from uiApp.utils.return_data import return_json_data
 from django.db.models import Q
 from uiApp.constant import OPERATION
+from uiApp.utils.utils import *
 
 
 # 项目列表视图
@@ -76,6 +77,12 @@ class ProjectListView(APIView):
 
 # 项目详情视图
 class ProjectDetailView(APIView):
+    # 获取项目详情
+    def get(self,request,pk):
+        projects = DB_project.objects.get(id=pk)
+        res_pro = ProjectSerializer(instance=projects).data
+        return Response(return_json_data(1, '成功', res_pro), status=status.HTTP_200_OK)
+
     # 修改项目
     def put(self, request, pk):
         query_data = request.data
@@ -256,7 +263,7 @@ class ConcurrentExcuseCaseView(APIView):
         # 声明一个线程列表
         threads_pool = []
         # 根据并发的用例来创建多个线程
-        from uiApp.utils.utils import excuse_case
+
         for case in concurrent_case:
             # target:指定线程执行的函数  args:传给函数的参数 需要传入元祖
             t = threading.Thread(target=excuse_case, args=(case, project, host))
@@ -427,24 +434,48 @@ class UploadUtilsView(APIView):
         return Response(return_json_data(1, '上传成功', ''), status=status.HTTP_201_CREATED)
 
 
-# 开启监控
+# 自动化任务视图
 class MonitorView(APIView):
+    # 开启自动化任务
     def get(self, request, project_id):
+        excuse_time = request.query_params['excuse_time']
         # 先判断监控是否已经开启
         try:
             # 如果没输出则会报错  报错代表未开启监控
+
             if OPERATION == 'Windows':
+                script = 'monitor.py %s WEB ' % project_id
+                script_time = script + excuse_time
                 res = subprocess.check_output('wmic process where caption="python.exe" get processid,commandline',
                                               shell=True)
                 for i in str(res).split(r'\n'):
-                    if 'monitor.py %s WEB' % project_id in i:
-                        pid = re.findall(r'(\d+)', i)
-                        return Response(return_json_data(0, "监控已开启", ''), status=status.HTTP_200_OK)
+
+                    if script_time in i:
+                        return Response(return_json_data(0, "自动化任务已开启", ''), status=status.HTTP_200_OK)
+                    # 若修改了定时时间 则需要关闭重启
+                    if script in i and script_time not in i:
+                        # 关闭监控 修改任务时间
+                        # 使用正则获取pid
+                        pid = re.findall(r'(\d+)', i)[-1]
+                        subprocess.call('taskkill /T /F /PID %s' % pid, shell=True)
+
             else:
-                process = subprocess.check_output('ps -ef | grep "monitor.py %s WEB" | grep -v grep' % project_id,
-                                                  shell=True)
-                # 开启则直接返回
-                return Response(return_json_data(0, "监控已开启", ''), status=status.HTTP_200_OK)
+
+                subprocess.check_output(
+                    'ps -ef | grep "monitor.py %s WEB" | grep -v grep' % project_id,
+                    shell=True)
+                try:
+                    subprocess.check_output(
+                        'ps -ef | grep "monitor.py %s WEB %s" | grep -v grep' % (project_id, excuse_time),
+                        shell=True)
+                    # 开启则直接返回
+                    return Response(return_json_data(0, "自动化任务已开启", ''), status=status.HTTP_200_OK)
+                except:
+                    # 关闭监控
+                    process = subprocess.check_output('ps -ef | grep "monitor.py %s WEB" | grep -v grep' % project_id,
+                                                      shell=True)
+                    close_monitor_linux(process)
+
         # 未开启 则调用monitor开启监控
         except:
             pass
@@ -452,13 +483,37 @@ class MonitorView(APIView):
         # 开启监控
         def start_monitor():
             if OPERATION == 'Windows':
-                subprocess.call('python uiApp/monitor.py %s WEB' % project_id, shell=True)
+                subprocess.call('python uiApp/monitor.py %s WEB %s' % (project_id, excuse_time), shell=True)
             else:
-                subprocess.call('python3 uiApp/monitor.py %s WEB' % project_id, shell=True)
+                subprocess.call('python3 uiApp/monitor.py %s WEB %s' % (project_id, excuse_time), shell=True)
 
         monitor_thread = threading.Thread(target=start_monitor)
         # 设置守护线程
         monitor_thread.setDaemon(True)
         # 执行线程
         monitor_thread.start()
-        return Response(return_json_data(1, "监控开启成功", ''), status=status.HTTP_200_OK)
+        # 更新数据库中项目数据
+        DB_project.objects.filter(id=project_id).update(is_auto=1, excuse_time=excuse_time)
+        return Response(return_json_data(1, "自动化任务开启成功", ''), status=status.HTTP_200_OK)
+
+    # 关闭自动化任务
+    def delete(self, request, project_id):
+        pass
+        if OPERATION == 'Windows':
+            res = subprocess.check_output('wmic process where caption="python.exe" get processid,commandline',
+                                          shell=True)
+            script = 'monitor.py %s WEB' % project_id
+            for i in str(res).split(r'\n'):
+                # 若修改了定时时间 则需要关闭重启
+                if script in i:
+                    # 关闭监控 修改任务时间
+                    # 使用正则获取pid
+                    pid = re.findall(r'(\d+)', i)[-1]
+                    subprocess.call('taskkill /T /F /PID %s' % pid, shell=True)
+        else:
+            process = subprocess.check_output('ps -ef | grep "monitor.py %s WEB" | grep -v grep' % project_id,
+                                              shell=True)
+            close_monitor_linux(process)
+        # 更新数据库中项目数据
+        DB_project.objects.filter(id=project_id).update(is_auto=0)
+        return Response(return_json_data(1, "关闭成功", ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)

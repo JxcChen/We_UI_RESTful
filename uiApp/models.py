@@ -9,6 +9,8 @@ class DB_project(models.Model):
     author_name = models.CharField(max_length=40, default="-")
     max_threads = models.IntegerField(default=1)
     auto_host = models.CharField(max_length=200, null=True)
+    is_auto = models.IntegerField(default=0)  # 0:关 1:开
+    excuse_time = models.CharField(default='00:00',max_length=10)
 
     def __str__(self):
         return self.name

@@ -1,3 +1,4 @@
+import re
 import subprocess
 
 
@@ -29,3 +30,10 @@ def excuse_case(testcase, project, host=''):
             else:
                 subprocess.call('python3 my_client/client_%s/public/xls_to_script.py %s %s %s' % (
                     testcase.pro_id, host, testcase.script_name, testcase.name), shell=True)
+
+
+def close_monitor_linux(process):
+    # 使用正则
+    pid_list = re.findall(r'(\d+)', str(process))
+    pid = max([int(i) for i in pid_list])
+    subprocess.call('kill -9 %s' % pid, shell=True)

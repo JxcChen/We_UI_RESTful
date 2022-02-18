@@ -30,14 +30,14 @@ def excuse():
 
 
 def monitor():
-    excuse()
     # 启动一个无限循环  一直进行监控
-    schedule.every(2).minutes.do(excuse)
+    schedule.every().day.at(excuse_time).do(excuse)
     while True:
         schedule.run_pending()
 
 
 if __name__ == '__main__':
     pro_id = sys.argv[1]
+    excuse_time = sys.argv[3]
     project = DB_project.objects.get(id=pro_id)
     monitor()
