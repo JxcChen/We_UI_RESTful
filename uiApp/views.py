@@ -78,7 +78,7 @@ class ProjectListView(APIView):
 # 项目详情视图
 class ProjectDetailView(APIView):
     # 获取项目详情
-    def get(self,request,pk):
+    def get(self, request, pk):
         projects = DB_project.objects.get(id=pk)
         res_pro = ProjectSerializer(instance=projects).data
         return Response(return_json_data(1, '成功', res_pro), status=status.HTTP_200_OK)
@@ -107,7 +107,7 @@ class ProjectDetailView(APIView):
     def delete(self, request, pk):
 
         project = DB_project.objects.get(id=pk)
-        if request.user.id != 1 and project.author != request.user.id:
+        if request.user.id != 1 and project.author != str(request.user.id):
             return Response(return_json_data(-3, '无权限', ''))
         project.delete()
         DB_pro_user.objects.filter(pro_id=pk).delete()
@@ -178,14 +178,16 @@ class CaseDetailView(APIView):
         """
         修改用例
         """
-        requestData = request.data
-        requestData['is_thread'] = int(requestData['is_thread'])
+        request_data = request.data
+
+        request_data['is_thread'] = int(request_data['is_thread'])
+        request_data['is_auto_excuse'] = int(request_data['is_auto_excuse'])
         # 获取参数
-        name = requestData['name']
+        name = request_data['name']
         if not name:
             return http.JsonResponse({'code': 0, 'msg': '用例名称不能为空', 'case': {}})
         case = DB_case.objects.get(id=pro_id)
-        serializer = CaseSerializers(data=requestData, instance=case)
+        serializer = CaseSerializers(data=request_data, instance=case)
         serializer.is_valid(raise_exception=True)
         case_instance = serializer.save()
         case = CaseSerializers(instance=case_instance)
@@ -517,3 +519,29 @@ class MonitorView(APIView):
         # 更新数据库中项目数据
         DB_project.objects.filter(id=project_id).update(is_auto=0)
         return Response(return_json_data(1, "关闭成功", ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+
+
+# 自动化任务通知视图
+class NoticeListView(APIView):
+    # 新增任务通知
+    def post(self, request):
+        request_data = request.data
+        try:
+            # 如果原本已经存在对应项目的通知就删除
+            DBNotice.objects.filter(project_id=request_data['project_id']).all().delete()
+        except:
+            pass
+        serializer = NoticeSerializers(data=request_data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        res = NoticeSerializers(instance=instance).data
+        return Response(return_json_data(1, '保存成功', res),status=status.HTTP_201_CREATED)
+
+
+# 自动化任务通知视图
+class NoticeDetailView(APIView):
+    # 获取任务通知详情
+    def get(self, request,project_id):
+        notice = DBNotice.objects.get(project_id=project_id)
+        res = NoticeSerializers(instance=notice).data
+        return Response(return_json_data(1, '成功', res),status=status.HTTP_200_OK)

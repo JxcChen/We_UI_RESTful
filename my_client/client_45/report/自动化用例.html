@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>123测试报告</title>
+    <title>自动化用例测试报告</title>
     <meta name="generator" content="HTMLTestRunner 0.8.2"/>
     <link rel="shortcut icon" href=" /static/images/favicon.ico" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -232,12 +232,12 @@ function showOutput(id, name) {
 --></script>
 
 <div class='heading'>
-<h1>报告标题: 用例名称：123 脚本名称：test_py.py </h1>
+<h1>报告标题: 用例名称：自动化用例 脚本名称：test_py2.py </h1>
     <div style="border: 1px solid #ffffff;border-radius: 10px;box-shadow: 2px 2px 12px #aeaeae;padding-left: 30px;width: 500px">
 <p class='attribute'>小程序自动化测试平台提供</p>
 <p class='attribute'><strong>注意:</strong> 出现问题请联系管理员！</p>
-<p class='attribute'><strong>报告生成日期:</strong> 2022-02-20 17:06:20</p>
-<p class='attribute'><strong>用例执行时间:</strong> 0:00:09.119304秒</p>
+<p class='attribute'><strong>报告生成日期:</strong> 2022-02-19 16:50:16</p>
+<p class='attribute'><strong>用例执行时间:</strong> 0:00:05.455058秒</p>
 <p class='attribute'><strong>用例执行结果:</strong> 通过 1, 报错 1</p>
 <p class='attribute'><strong>执行系统:</strong> darwin</p>
 
@@ -288,7 +288,7 @@ function showOutput(id, name) {
 </tr>
 
 <tr id='ft1.1' class='none'>
-    <td class='errorCase'><div class='testcase'>test_01: 这里是用例描述</div></td>
+    <td class='errorCase'><div class='testcase'>test_01</div></td>
     <td colspan='5' align='center'>
 
     <!--css div popup start-->
@@ -302,39 +302,11 @@ function showOutput(id, name) {
         <pre>
         
 ft1.1: Traceback (most recent call last):
-  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/case/test_py.py", line 47, in test_01
-    self.driver.find_element(*search_input).send_keys("hello world")
-  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 1244, in find_element
-    return self.execute(Command.FIND_ELEMENT, {
-  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 424, in execute
-    self.error_handler.check_response(response)
-  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/errorhandler.py", line 247, in check_response
-    raise exception_class(message, screen, stacktrace)
-selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="k"]"}
-  (Session info: chrome=98.0.4758.102)
-Stacktrace:
-0   chromedriver                        0x0000000103601e69 chromedriver + 5160553
-1   chromedriver                        0x000000010358c593 chromedriver + 4679059
-2   chromedriver                        0x00000001031402c8 chromedriver + 172744
-3   chromedriver                        0x0000000103175b62 chromedriver + 392034
-4   chromedriver                        0x0000000103175d21 chromedriver + 392481
-5   chromedriver                        0x00000001031a8304 chromedriver + 598788
-6   chromedriver                        0x00000001031933fd chromedriver + 513021
-7   chromedriver                        0x00000001031a60ab chromedriver + 589995
-8   chromedriver                        0x0000000103193623 chromedriver + 513571
-9   chromedriver                        0x0000000103168dce chromedriver + 339406
-10  chromedriver                        0x000000010316a105 chromedriver + 344325
-11  chromedriver                        0x00000001035bd23e chromedriver + 4878910
-12  chromedriver                        0x00000001035d4d17 chromedriver + 4975895
-13  chromedriver                        0x00000001035daa3f chromedriver + 4999743
-14  chromedriver                        0x00000001035d561a chromedriver + 4978202
-15  chromedriver                        0x00000001035b1bb1 chromedriver + 4832177
-16  chromedriver                        0x00000001035f1fd8 chromedriver + 5095384
-17  chromedriver                        0x00000001035f2161 chromedriver + 5095777
-18  chromedriver                        0x00000001036092a8 chromedriver + 5190312
-19  libsystem_pthread.dylib             0x00007ff804315514 _pthread_start + 125
-20  libsystem_pthread.dylib             0x00007ff80431102f thread_start + 15
-
+  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/public/utils.py", line 162, in wrapper
+    raise e
+  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/public/utils.py", line 154, in wrapper
+    res = case_method(**args)
+TypeError: test_01() missing 1 required positional argument: 'self'
 
 
          <div id="div100">

@@ -29,6 +29,14 @@ class CaseSerializers(serializers.ModelSerializer):
         fields = "__all__"
 
 
+# 定义通知序列化器
+class NoticeSerializers(serializers.ModelSerializer):
+    class Meta:
+        # 指定model
+        model = DBNotice
+        fields = "__all__"
+
+
 # 定义用例序列化器
 class UserSerializers(serializers.ModelSerializer):
     class Meta:

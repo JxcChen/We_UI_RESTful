@@ -20,6 +20,8 @@ urlpatterns = [
     re_path(r'case/downloadclient/(?P<project_id>\d+)/', download),
     re_path(r'case/openMonitor/(?P<project_id>\d+)/', MonitorView.as_view()),
     url(r'^case/uploadUtils/(?P<pro_id>\d+)/$', UploadUtilsView.as_view()),
+    url(r'^notice/$', NoticeListView.as_view()),
+    url(r'^notice/(?P<project_id>\d+)/$', NoticeDetailView.as_view()),
     url(r'^login/$', obtain_jwt_token)
 
 ]

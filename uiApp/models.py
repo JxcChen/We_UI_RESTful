@@ -45,6 +45,17 @@ class DB_tester(models.Model):
         return self.name
 
 
+# 任务通知库
+class DBNotice(models.Model):
+    notice_type = models.IntegerField(default=1)
+    user_list = models.CharField(max_length=30,null=True)
+    webhook = models.CharField(max_length=50,null=True)
+    project_id = models.IntegerField()
+
+    def __str__(self):
+        return self.project_id
+
+
 # 测试任务库  后期完成
 # class DB_task(models.Model):
 #     name = models.CharField(max_length=30)
