@@ -6,6 +6,7 @@ import threading
 import time
 
 from django import http
+from django.contrib.auth import authenticate
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views import View
@@ -381,10 +382,17 @@ class UserDetailView(APIView):
     def put(self, request, user_id):
         request_data = request.data
         current_user = request.user.id
-        if current_user != 1 and current_user != user_id:
+        if current_user != 1 and current_user != int(user_id):
             return Response(return_json_data(-2, "无权限", ''), status=status.HTTP_400_BAD_REQUEST)
-        del request_data['user_type']
-        User.objects.filter(id=user_id).update(**request_data)
+        try:
+            del request_data['user_type']
+            User.objects.filter(id=user_id).update(**request_data)
+        except:
+            # 进行密码修改
+            user = authenticate(username=request.user,password=request_data['old_password'])
+            user.set_password(request_data['new_password'])
+            user.save()
+
         return Response(return_json_data(1, "修改成功", ''), status=status.HTTP_201_CREATED)
 
     def delete(self, request, user_id):
