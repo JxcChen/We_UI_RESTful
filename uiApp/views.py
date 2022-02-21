@@ -50,11 +50,13 @@ class ProjectListView(APIView):
     # 新增项目
     def post(self, request):
         query_data = request.data
+        if not query_data['name']:
+            return Response(return_json_data(-1, '项目名称不能为空', ''), status=status.HTTP_400_BAD_REQUEST)
         query_data['author_name'] = str(request.user)
         # 先判断数据库中是否已存在同名项目
         is_exit = True if len(DB_project.objects.filter(name=query_data['name'])) > 0 else False
         if is_exit:
-            return Response(return_json_data(3, '该项目已存在', ''), status=status.HTTP_200_OK)
+            return Response(return_json_data(-2, '该项目已存在', ''), status=status.HTTP_400_BAD_REQUEST)
         else:
             pro = ProjectSerializer(data=query_data)
             # 先将新增的项目落库
@@ -86,10 +88,13 @@ class ProjectDetailView(APIView):
     # 修改项目
     def put(self, request, pk):
         query_data = request.data
+        if not query_data['name']:
+            return Response(return_json_data(-1, '项目名称不能为空', ''), status=status.HTTP_400_BAD_REQUEST)
         # 先判断 是否已存在相同名称项目
-        is_exit = True if len(DB_project.objects.filter(~Q(id=pk), name=query_data['name'])) else False
+        # is_exit = True if len(DB_project.objects.filter(~Q(id=pk), name=query_data['name'])) else False
+        is_exit = DB_project.objects.filter(~Q(id=pk), name=query_data['name']).exists()
         if is_exit:
-            return Response(return_json_data(3, '该项目已存在', ''), status=status.HTTP_200_OK)
+            return Response(return_json_data(-3, '该项目已存在', ''), status=status.HTTP_400_BAD_REQUEST)
         else:
             # 获取待修改的项目
             old_pro = DB_project.objects.get(id=pk)
@@ -161,8 +166,11 @@ class CaseListView(APIView):
         request_data['is_thread'] = int(request_data['is_thread'])
         # 获取参数
         name = request_data['name']
+        script_name = request_data['script_name']
         if name == '' or name is None:
-            return Response(return_json_data(0, '用例名称不能为空', []))
+            return Response(return_json_data(-1, '用例名称不能为空', []), status=status.HTTP_400_BAD_REQUEST)
+        if script_name == '' or script_name is None:
+            return Response(return_json_data(-1, '用例脚本不能为空', []), status=status.HTTP_400_BAD_REQUEST)
         # 进行序列化
         serializer = CaseSerializers(data=request_data)
         serializer.is_valid(raise_exception=True)
@@ -185,7 +193,7 @@ class CaseDetailView(APIView):
         # 获取参数
         name = request_data['name']
         if not name:
-            return http.JsonResponse({'code': 0, 'msg': '用例名称不能为空', 'case': {}})
+            return http.JsonResponse(return_json_data(-1, '用例名称不能为空', ''), status=status.HTTP_400_BAD_REQUEST)
         case = DB_case.objects.get(id=pro_id)
         serializer = CaseSerializers(data=request_data, instance=case)
         serializer.is_valid(raise_exception=True)
@@ -354,7 +362,7 @@ class UserListView(APIView):
         request_data = request.data
         current_user = request.user.id
         if current_user != '1':
-            return Response(return_json_data(-3, "无权限", ''), status=status.HTTP_200_OK)
+            return Response(return_json_data(-2, "无权限", ''), status=status.HTTP_400_BAD_REQUEST)
         username = request_data['username']
         password = request_data['password']
         if not username:
@@ -362,7 +370,7 @@ class UserListView(APIView):
         if not password:
             return Response(return_json_data(-1, "密码不能为空", ''))
         if len(User.objects.filter(username=username)) > 0:
-            return Response(return_json_data(-2, "该用户已存在", ''))
+            return Response(return_json_data(-3, "该用户已存在", ''))
         User.objects.create_user(**request_data)
         return Response(return_json_data(1, "创建成功", ''), status=status.HTTP_201_CREATED)
 
@@ -374,7 +382,7 @@ class UserDetailView(APIView):
         request_data = request.data
         current_user = request.user.id
         if current_user != 1 and current_user != user_id:
-            return Response(return_json_data(-3, "无权限", ''), status=status.HTTP_200_OK)
+            return Response(return_json_data(-2, "无权限", ''), status=status.HTTP_400_BAD_REQUEST)
         del request_data['user_type']
         User.objects.filter(id=user_id).update(**request_data)
         return Response(return_json_data(1, "修改成功", ''), status=status.HTTP_201_CREATED)
@@ -526,6 +534,12 @@ class NoticeListView(APIView):
     # 新增任务通知
     def post(self, request):
         request_data = request.data
+        if request_data['notice_type'] == 1:
+            if not request_data['user_list']:
+                return Response(return_json_data(-1, '配置人员列表不能为空', ''), status=status.HTTP_400_BAD_REQUEST)
+        else:
+            if not request_data['webhook']:
+                return Response(return_json_data(-1, 'webhook不能为空', ''), status=status.HTTP_400_BAD_REQUEST)
         try:
             # 如果原本已经存在对应项目的通知就删除
             DBNotice.objects.filter(project_id=request_data['project_id']).all().delete()
@@ -535,13 +549,13 @@ class NoticeListView(APIView):
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
         res = NoticeSerializers(instance=instance).data
-        return Response(return_json_data(1, '保存成功', res),status=status.HTTP_201_CREATED)
+        return Response(return_json_data(1, '保存成功', res), status=status.HTTP_201_CREATED)
 
 
 # 自动化任务通知视图
 class NoticeDetailView(APIView):
     # 获取任务通知详情
-    def get(self, request,project_id):
+    def get(self, request, project_id):
         notice = DBNotice.objects.get(project_id=project_id)
         res = NoticeSerializers(instance=notice).data
-        return Response(return_json_data(1, '成功', res),status=status.HTTP_200_OK)
+        return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)

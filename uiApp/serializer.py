@@ -15,8 +15,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         # 设置字段额外约束
         extra_kwargs = {
             "max_threads": {
-                "max_value": 5,
-                "min_value": 0
+                "max_value": 10,
+                "min_value": 1
             }
         }
 

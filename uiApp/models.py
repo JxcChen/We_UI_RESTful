@@ -33,6 +33,9 @@ class DB_pro_user(models.Model):
     pro_id = models.IntegerField()
     user_id = models.IntegerField()
 
+    def __str__(self):
+        return self.pro_id
+
 
 class DB_tester(models.Model):
     name = models.CharField(max_length=30)
