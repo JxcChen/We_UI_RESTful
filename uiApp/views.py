@@ -391,7 +391,8 @@ class UserDetailView(APIView):
             # 进行密码修改
             user = authenticate(username=request.user,password=request_data['old_password'])
             # 如果原密码错误则直接返回
-            return Response(return_json_data(-100, "原始密码错误", ''), status=status.HTTP_400_BAD_REQUEST)
+            if not user:
+                return Response(return_json_data(-100, "原始密码错误", ''), status=status.HTTP_400_BAD_REQUEST)
             user.set_password(request_data['new_password'])
             user.save()
 
