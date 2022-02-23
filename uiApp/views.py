@@ -595,7 +595,7 @@ class PageListView(APIView):
     def post(self, request):
         request_data = request.data
         # 判断该页面是否存在
-        if DBPage.objects.filter(project_id=request_data['request_data'], name=request_data['name']).exists():
+        if DBPage.objects.filter(project_id=request_data['project_id'], name=request_data['name']).exists():
             return Response(return_json_data(-2, '该页面已存在', ''), status=status.HTTP_400_BAD_REQUEST)
         page_serializers = PageSerializers(data=request_data)
         page_serializers.is_valid(raise_exception=True)
