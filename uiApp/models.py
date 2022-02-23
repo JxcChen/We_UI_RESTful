@@ -73,3 +73,22 @@ class DBNotice(models.Model):
 #     def __str__(self):
 #         return self.name
 
+
+# 页面数据
+class DBPage(models.Model):
+    name = models.CharField(max_length=50)
+    project_id = models.IntegerField()
+    author = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name
+
+
+# 页面元素
+class DBElement(models.Model):
+    name = models.CharField(max_length=50)
+    page_id = models.IntegerField()
+    element_location = models.CharField(max_length=300,null=True)
+
+    def __str__(self):
+        return self.name

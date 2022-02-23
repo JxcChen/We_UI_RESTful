@@ -22,6 +22,10 @@ urlpatterns = [
     url(r'^case/uploadUtils/(?P<pro_id>\d+)/$', UploadUtilsView.as_view()),
     url(r'^notice/$', NoticeListView.as_view()),
     url(r'^notice/(?P<project_id>\d+)/$', NoticeDetailView.as_view()),
+    url(r'^page/$', PageListView.as_view()),
+    url(r'^page/(?P<pro_id>\d+)/$', PageDetailView.as_view()),
+    url(r'^element/$', ElementListView.as_view()),
+    url(r'^page/(?P<pro_id>\d+)/$', ElementListView.as_view()),
     url(r'^login/$', obtain_jwt_token)
 
 ]

@@ -389,7 +389,7 @@ class UserDetailView(APIView):
             User.objects.filter(id=user_id).update(**request_data)
         except:
             # 进行密码修改
-            user = authenticate(username=request.user,password=request_data['old_password'])
+            user = authenticate(username=request.user, password=request_data['old_password'])
             # 如果原密码错误则直接返回
             if not user:
                 return Response(return_json_data(-100, "原始密码错误", ''), status=status.HTTP_400_BAD_REQUEST)
@@ -570,3 +570,119 @@ class NoticeDetailView(APIView):
         notice = DBNotice.objects.get(project_id=project_id)
         res = NoticeSerializers(instance=notice).data
         return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)
+
+
+# 自动化任务通知视图
+class NoticeDetailView(APIView):
+    # 获取任务通知详情
+    def get(self, request, project_id):
+        notice = DBNotice.objects.get(project_id=project_id)
+        res = NoticeSerializers(instance=notice).data
+        return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)
+
+
+# 页面列表视图
+class PageListView(APIView):
+    # 获取页面列表
+    def get(self, request):
+        request_data = request.query_params
+        project_id = request_data['project_id']
+        page_list = DBPage.objects.filter(project_id=project_id)
+        res_list = PageSerializers(instance=page_list, many=True).data
+        return Response(return_json_data(1, '成功', res_list), status=status.HTTP_200_OK)
+
+    # 新增页面
+    def post(self, request):
+        request_data = request.data
+        # 判断该页面是否存在
+        if DBPage.objects.filter(project_id=request_data['request_data'], name=request_data['name']).exists():
+            return Response(return_json_data(-2, '该页面已存在', ''), status=status.HTTP_400_BAD_REQUEST)
+        page_serializers = PageSerializers(data=request_data)
+        page_serializers.is_valid(raise_exception=True)
+        instance = page_serializers.save()
+        page_instance = PageSerializers(instance=instance).data
+        return Response(return_json_data(1, '创建成功', page_instance), status=status.HTTP_201_CREATED)
+
+
+# 页面详情试图
+class PageDetailView(APIView):
+    # 编辑页面
+    def put(self, request, page_id):
+        request_data = request.data
+        try:
+            old_page = DBPage.objects.get(id=page_id)
+        except:
+            return Response(return_json_data(-4, "该页面不存在", ''), status.HTTP_400_BAD_REQUEST)
+        page_serializers = PageSerializers(data=request_data, instance=old_page)
+        page_serializers.is_valid(raise_exception=True)
+        instance = page_serializers.save()
+        res = PageSerializers(instance=instance).data
+        return Response(return_json_data(1, '修改成功', res), status=status.HTTP_201_CREATED)
+
+    # 删除元素
+    def delete(self, request, page_id):
+        request_data = request.data
+        try:
+            old_page = DBPage.objects.get(id=page_id)
+        except:
+            return Response(return_json_data(-4, "该页面不存在", ''), status.HTTP_400_BAD_REQUEST)
+        old_page.delete()
+        # 删除页面下所有的元素信息
+        # DBElement.objects.filter(page_id=page_id).delete()
+        return Response(return_json_data(1, '删除成功', ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+
+
+# 元素列表视图
+class ElementListView(APIView):
+    # 获取页面下的元素列表
+    def get(self, request):
+        request_data = request.query_params
+        ele_list = DBPage.objects.filter(project_id=request_data['page_id'])
+        res_list = PageSerializers(instance=ele_list, many=True).data
+        return Response(return_json_data(1, '成功', res_list), status=status.HTTP_200_OK)
+
+    # 新增元素
+    def post(self, request):
+        request_data = request.data
+        # 判断该页面是否存在
+        if DBElement.objects.filter(page_id=request_data['page_id'], name=request_data['name']).exists():
+            return Response(return_json_data(-2, '该元素已存在', ''), status=status.HTTP_400_BAD_REQUEST)
+        ele_serializers = ElementSerializers(data=request_data)
+        ele_serializers.is_valid(raise_exception=True)
+        instance = ele_serializers.save()
+        page_instance = PageSerializers(instance=instance).data
+        return Response(return_json_data(1, '创建成功', page_instance), status=status.HTTP_201_CREATED)
+
+
+# 元素详情试图
+class ElementDetailView(APIView):
+    # 获取元素详情
+    def get(self, request, element_id):
+        try:
+            ele = DBElement.objects.get(element_id)
+        except:
+            return Response(return_json_data(-4, '该元素不存在', page_instance), status=status.HTTP_400_BAD_REQUEST)
+        res = ElementSerializers(instance=ele)
+        return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)
+
+    # 编辑元素
+    def put(self, request, element_id):
+        request_data = request.data
+        try:
+            old_ele = DBElement.objects.get(id=element_id)
+        except:
+            return Response(return_json_data(-4, "该元素不存在", ''), status.HTTP_400_BAD_REQUEST)
+        ele_serializers = ElementSerializers(data=request_data, instance=old_ele)
+        ele_serializers.is_valid(raise_exception=True)
+        instance = ele_serializers.save()
+        res = ElementSerializers(instance=instance).data
+        return Response(return_json_data(1, '修改成功', res), status=status.HTTP_201_CREATED)
+
+    # 删除元素
+    def delete(self, request, element_id):
+        try:
+            old_ele = DBElement.objects.get(id=element_id)
+        except:
+            return Response(return_json_data(-4, "该元素不存在", ''), status.HTTP_400_BAD_REQUEST)
+        old_ele.delete()
+        return Response(return_json_data(1, '删除成功', ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)

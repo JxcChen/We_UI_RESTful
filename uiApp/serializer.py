@@ -51,3 +51,19 @@ class UserProSerializers(serializers.ModelSerializer):
         # 指定model
         model = DB_pro_user
         fields = "__all__"
+
+
+# 定义页面序列化器
+class PageSerializers(serializers.ModelSerializer):
+    class Meta:
+        # 指定model
+        model = DBPage
+        fields = "__all__"
+
+
+# 定义页面序列化器
+class ElementSerializers(serializers.ModelSerializer):
+    class Meta:
+        # 指定model
+        model = DBElement
+        fields = "__all__"
