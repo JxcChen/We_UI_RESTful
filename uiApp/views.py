@@ -637,8 +637,8 @@ class ElementListView(APIView):
     # 获取页面下的元素列表
     def get(self, request):
         request_data = request.query_params
-        ele_list = DBPage.objects.filter(project_id=request_data['page_id'])
-        res_list = PageSerializers(instance=ele_list, many=True).data
+        ele_list = DBElement.objects.filter(page_id=request_data['page_id'])
+        res_list = ElementSerializers(instance=ele_list, many=True).data
         return Response(return_json_data(1, '成功', res_list), status=status.HTTP_200_OK)
 
     # 新增元素
@@ -650,7 +650,7 @@ class ElementListView(APIView):
         ele_serializers = ElementSerializers(data=request_data)
         ele_serializers.is_valid(raise_exception=True)
         instance = ele_serializers.save()
-        page_instance = PageSerializers(instance=instance).data
+        page_instance = ElementSerializers(instance=instance).data
         return Response(return_json_data(1, '创建成功', page_instance), status=status.HTTP_201_CREATED)
 
 
@@ -661,7 +661,7 @@ class ElementDetailView(APIView):
         try:
             ele = DBElement.objects.get(element_id)
         except:
-            return Response(return_json_data(-4, '该元素不存在', page_instance), status=status.HTTP_400_BAD_REQUEST)
+            return Response(return_json_data(-4, '该元素不存在', ''), status=status.HTTP_400_BAD_REQUEST)
         res = ElementSerializers(instance=ele)
         return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)
 
