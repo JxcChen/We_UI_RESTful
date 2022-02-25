@@ -154,9 +154,17 @@ class CaseListView(APIView):
         获取项目对应的所有用例
         """
         request_data = request.query_params
-        cases = DB_case.objects.filter(project_id=request_data['pro_id']).all()
+        current_page = int(request_data['current_page'])
+        page_size = int(request_data['page_size'])
+        case_set = DB_case.objects.filter(project_id=request_data['pro_id'])
+        cases = case_set[(current_page-1)*page_size:current_page * page_size]
+        count = case_set.count()
         res_list = CaseSerializers(instance=cases, many=True).data
-        return Response(return_json_data('1', "成功", res_list))
+        res = {
+            'count': count,
+            'res_list': res_list
+        }
+        return Response(return_json_data('1', "成功", res))
 
     # 新增用例
     def post(self, request):
@@ -540,7 +548,7 @@ class MonitorView(APIView):
         return Response(return_json_data(1, "关闭成功", ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
 
 
-# 自动化任务通知视图
+# 自动化任务通知列表视图
 class NoticeListView(APIView):
     # 新增任务通知
     def post(self, request):
@@ -563,20 +571,14 @@ class NoticeListView(APIView):
         return Response(return_json_data(1, '保存成功', res), status=status.HTTP_201_CREATED)
 
 
-# 自动化任务通知视图
+# 自动化任务通知详情视图
 class NoticeDetailView(APIView):
     # 获取任务通知详情
     def get(self, request, project_id):
-        notice = DBNotice.objects.get(project_id=project_id)
-        res = NoticeSerializers(instance=notice).data
-        return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)
-
-
-# 自动化任务通知视图
-class NoticeDetailView(APIView):
-    # 获取任务通知详情
-    def get(self, request, project_id):
-        notice = DBNotice.objects.get(project_id=project_id)
+        try:
+            notice = DBNotice.objects.get(project_id=project_id)
+        except:
+            return Response(return_json_data(1, '未创建定时任务', ''), status=status.HTTP_200_OK)
         res = NoticeSerializers(instance=notice).data
         return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)
 
