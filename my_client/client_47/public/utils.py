@@ -116,9 +116,9 @@ def util_get_element_attribute(self, loc, attr_name):
 def util_get_element(self, loc_id):
     if loc_id == '' or loc_id == ' ' or loc_id is None:
         return None
-    res = requests.get("http://127.0.0.1:8000/open_get_locator/%s" % int(loc_id)).json()
-    loc = res['tmp_value']
-    method = res['tmp_method']
+    res = requests.get("http://127.0.0.1:8001/open_get_element/%s" % int(loc_id)).json()
+    loc = res['element_location']
+    method = res['loc_method']
     index = res['index']
     locator = ()
     if 'id' == method:

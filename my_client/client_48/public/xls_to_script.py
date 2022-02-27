@@ -106,7 +106,8 @@ def read_excel(file_name):
 
 
 if __name__ == '__main__':
-
+    data = read_excel('关键字驱动.xls')
+    to_test(data)
 
     param = {}
     try:
@@ -124,8 +125,6 @@ if __name__ == '__main__':
         script_name = "test_demo.py"
         case_name = "本地调试"
         env = "local"
-    data = read_excel(script_name)
-    to_test(data)
     param["script_name"] = script_name
     param["case_name"] = case_name
     param["env"] = env

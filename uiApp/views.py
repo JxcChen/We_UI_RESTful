@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shutil
@@ -29,13 +30,24 @@ class ProjectListView(APIView):
     def get(self, request):
         query_data = request.query_params
         user_id = query_data['user_id']
-        pro_list = list(DB_pro_user.objects.filter(user_id=user_id).values('pro_id'))
+        pro_list = list(DB_pro_user.objects.filter(user_id=user_id).order_by('-update_time').values('pro_id'))
         res_list = []
         for project in pro_list:
             pro = DB_project.objects.get(id=project['pro_id'])
             res_list.append(pro)
-        serializer = ProjectSerializer(instance=res_list, many=True)
-        res_pro_list = serializer.data
+        try:
+            # 需要进行分页
+            current_page = int(query_data['current_page'])
+            page_size = int(query_data['page_size'])
+            count = len(res_list)
+            # 根据页数获取对应数据
+            page_project = res_list[page_size * (current_page - 1):page_size * current_page]
+            res_pro_list = ProjectSerializer(instance=page_project, many=True).data
+            res_pro = {'count': count, 'pro_list': res_pro_list}
+        except:
+            # 无需进行分页
+            res_pro_list = ProjectSerializer(instance=res_list, many=True).data
+            res_pro = res_pro_list
         res_host_list = {}
         # 将路径切割成列表进行返回
         for pro in res_pro_list:
@@ -43,7 +55,7 @@ class ProjectListView(APIView):
             res_host_list[str(pro['id'])] = host_list
 
         res = {
-            "res_pro_list": res_pro_list,
+            "res_pro_list": res_pro,
             "res_host_list": res_host_list
         }
         return Response(return_json_data(1, '成功', res))
@@ -157,7 +169,7 @@ class CaseListView(APIView):
         current_page = int(request_data['current_page'])
         page_size = int(request_data['page_size'])
         case_set = DB_case.objects.filter(project_id=request_data['pro_id'])
-        cases = case_set[(current_page-1)*page_size:current_page * page_size]
+        cases = case_set.order_by('-update_time')[(current_page - 1) * page_size:current_page * page_size]
         count = case_set.count()
         res_list = CaseSerializers(instance=cases, many=True).data
         res = {
@@ -255,7 +267,6 @@ class CaseExcuseView(APIView):
         # 先判断是脚本文件还是excel文件
         if '.py' in script_name:
             # 根据操作系统执行脚本
-            from uiApp.constant import OPERATION
             if OPERATION == "Windows":
                 subprocess.call('python my_client/client_%s/case/%s %s %s %s %s' % (
                     pro_id, script_name, host, script_name, case_name, str(retry_count)),
@@ -264,6 +275,18 @@ class CaseExcuseView(APIView):
                 subprocess.call(
                     'python3 my_client/client_%s/case/%s %s %s %s %s' % (
                         pro_id, script_name, host, script_name, case_name, str(retry_count)),
+                    shell=True)
+        elif '.xls' in script_name:
+            # 执行参数化驱动用例
+            if OPERATION == "Windows":
+                subprocess.call(
+                    'python my_client/client_%s/public/xls_to_script.py %s %s %s %s' % (
+                        pro_id, host, script_name, case_name, str(retry_count)),
+                    shell=True)
+            else:
+                subprocess.call(
+                    'python3 my_client/client_%s/public/xls_to_script.py %s %s %s %s' % (
+                        pro_id, host, script_name, case_name, str(retry_count)),
                     shell=True)
         return Response(return_json_data(1, "执行成功", ''))
 
@@ -589,9 +612,21 @@ class PageListView(APIView):
     def get(self, request):
         request_data = request.query_params
         project_id = request_data['project_id']
-        page_list = DBPage.objects.filter(project_id=project_id)
-        res_list = PageSerializers(instance=page_list, many=True).data
-        return Response(return_json_data(1, '成功', res_list), status=status.HTTP_200_OK)
+        all_page_list = DBPage.objects.filter(project_id=project_id)
+        try:
+            # 请求分页数据
+            page_size = int(request_data['page_size'])
+            current_page = int(request_data['current_page'])
+            count = all_page_list.count()
+            data_list = all_page_list.order_by('-update_time')[page_size * (current_page - 1):page_size * current_page]
+            res_list = PageSerializers(instance=data_list, many=True).data
+            res = {'count': count, 'res_list': res_list}
+        except:
+            # 请求全量数据
+            res_list = PageSerializers(instance=all_page_list, many=True).data
+            res = {'res_list': res_list}
+
+        return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)
 
     # 新增页面
     def post(self, request):
@@ -639,9 +674,16 @@ class ElementListView(APIView):
     # 获取页面下的元素列表
     def get(self, request):
         request_data = request.query_params
+        current_page = int(request_data['current_page'])
+        page_size = int(request_data['page_size'])
         ele_list = DBElement.objects.filter(page_id=request_data['page_id'])
-        res_list = ElementSerializers(instance=ele_list, many=True).data
-        return Response(return_json_data(1, '成功', res_list), status=status.HTTP_200_OK)
+        # 获取总数
+        count = ele_list.count()
+        # 获取分页数据
+        page_ele = ele_list.order_by('-update_time')[page_size * (current_page - 1): page_size * current_page]
+        res_list = ElementSerializers(instance=page_ele, many=True).data
+        res = {'count': count, 'res_list': res_list}
+        return Response(return_json_data(1, '成功', res), status=status.HTTP_200_OK)
 
     # 新增元素
     def post(self, request):
@@ -688,3 +730,13 @@ class ElementDetailView(APIView):
             return Response(return_json_data(-4, "该元素不存在", ''), status.HTTP_400_BAD_REQUEST)
         old_ele.delete()
         return Response(return_json_data(1, '删除成功', ''), status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+
+
+# 获取元素详情
+def open_get_element(request, element_id):
+    try:
+        ele = DBElement.objects.get(id=element_id)
+    except:
+        return JsonResponse(return_json_data(-4, '该元素不存在', ''), status=status.HTTP_400_BAD_REQUEST)
+    res = ElementSerializers(instance=ele).data
+    return HttpResponse(json.dumps(return_json_data(1,'成功',res)), content_type="application/json")

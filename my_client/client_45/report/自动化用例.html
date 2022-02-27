@@ -236,8 +236,8 @@ function showOutput(id, name) {
     <div style="border: 1px solid #ffffff;border-radius: 10px;box-shadow: 2px 2px 12px #aeaeae;padding-left: 30px;width: 500px">
 <p class='attribute'>小程序自动化测试平台提供</p>
 <p class='attribute'><strong>注意:</strong> 出现问题请联系管理员！</p>
-<p class='attribute'><strong>报告生成日期:</strong> 2022-02-19 16:50:16</p>
-<p class='attribute'><strong>用例执行时间:</strong> 0:00:05.455058秒</p>
+<p class='attribute'><strong>报告生成日期:</strong> 2022-02-27 21:49:42</p>
+<p class='attribute'><strong>用例执行时间:</strong> 0:00:15.286646秒</p>
 <p class='attribute'><strong>用例执行结果:</strong> 通过 1, 报错 1</p>
 <p class='attribute'><strong>执行系统:</strong> darwin</p>
 
@@ -301,12 +301,48 @@ function showOutput(id, name) {
         </div>
         <pre>
         
-ft1.1: Traceback (most recent call last):
-  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/public/utils.py", line 162, in wrapper
+ft1.1: 执行第1次
+执行第i次
+执行第2次
+执行第i次
+Traceback (most recent call last):
+  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/public/utils.py", line 163, in wrapper
     raise e
-  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/public/utils.py", line 154, in wrapper
-    res = case_method(**args)
-TypeError: test_01() missing 1 required positional argument: 'self'
+  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/public/utils.py", line 158, in wrapper
+    res = case_method(*arg, **args)
+  File "/Users/chnjx/PycharmProjects/UI_Auto_pro/We_UI/my_client/client_45/case/test_py2.py", line 72, in test_01
+    self.driver.find_element(*search_input).send_keys("hello world")
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 1244, in find_element
+    return self.execute(Command.FIND_ELEMENT, {
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 424, in execute
+    self.error_handler.check_response(response)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages/selenium/webdriver/remote/errorhandler.py", line 247, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="t"]"}
+  (Session info: chrome=98.0.4758.109)
+Stacktrace:
+0   chromedriver                        0x00000001098e0e69 chromedriver + 5160553
+1   chromedriver                        0x000000010986b593 chromedriver + 4679059
+2   chromedriver                        0x000000010941f2c8 chromedriver + 172744
+3   chromedriver                        0x0000000109454b62 chromedriver + 392034
+4   chromedriver                        0x0000000109454d21 chromedriver + 392481
+5   chromedriver                        0x0000000109487304 chromedriver + 598788
+6   chromedriver                        0x00000001094723fd chromedriver + 513021
+7   chromedriver                        0x00000001094850ab chromedriver + 589995
+8   chromedriver                        0x0000000109472623 chromedriver + 513571
+9   chromedriver                        0x0000000109447dce chromedriver + 339406
+10  chromedriver                        0x0000000109449105 chromedriver + 344325
+11  chromedriver                        0x000000010989c23e chromedriver + 4878910
+12  chromedriver                        0x00000001098b3d17 chromedriver + 4975895
+13  chromedriver                        0x00000001098b9a3f chromedriver + 4999743
+14  chromedriver                        0x00000001098b461a chromedriver + 4978202
+15  chromedriver                        0x0000000109890bb1 chromedriver + 4832177
+16  chromedriver                        0x00000001098d0fd8 chromedriver + 5095384
+17  chromedriver                        0x00000001098d1161 chromedriver + 5095777
+18  chromedriver                        0x00000001098e82a8 chromedriver + 5190312
+19  libsystem_pthread.dylib             0x00007ff80c4a9514 _pthread_start + 125
+20  libsystem_pthread.dylib             0x00007ff80c4a502f thread_start + 15
+
 
 
          <div id="div100">

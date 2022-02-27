@@ -11,6 +11,8 @@ class DB_project(models.Model):
     auto_host = models.CharField(max_length=200, null=True)
     is_auto = models.IntegerField(default=0)  # 0:关 1:开
     excuse_time = models.CharField(default='00:00',max_length=10)
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -24,6 +26,8 @@ class DB_case(models.Model):
     is_thread = models.IntegerField(default=1)
     retry_count = models.IntegerField(default=1)
     author = models.CharField(max_length=30)
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -32,6 +36,8 @@ class DB_case(models.Model):
 class DB_pro_user(models.Model):
     pro_id = models.IntegerField()
     user_id = models.IntegerField()
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.pro_id
@@ -43,6 +49,8 @@ class DB_tester(models.Model):
     password = models.CharField(max_length=30)
     email = models.CharField(max_length=50, null=True)
     type = models.IntegerField(default=1)
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -54,6 +62,8 @@ class DBNotice(models.Model):
     user_list = models.CharField(max_length=30,null=True)
     webhook = models.CharField(max_length=50,null=True)
     project_id = models.IntegerField()
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.project_id
@@ -79,6 +89,8 @@ class DBPage(models.Model):
     name = models.CharField(max_length=50)
     project_id = models.IntegerField()
     author = models.CharField(max_length=30)
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -89,6 +101,10 @@ class DBElement(models.Model):
     name = models.CharField(max_length=50)
     page_id = models.IntegerField()
     element_location = models.CharField(max_length=300,null=True)
+    create_time = models.DateTimeField(auto_now_add=True)
+    update_time = models.DateTimeField(auto_now=True)
+    loc_method = models.CharField(max_length=20)
+    index = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name

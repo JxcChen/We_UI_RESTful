@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^page/(?P<page_id>\d+)/$', PageDetailView.as_view()),
     url(r'^element/$', ElementListView.as_view()),
     url(r'^element/(?P<element_id>\d+)/$', ElementDetailView.as_view()),
+    re_path(r'^open_get_element/(?P<element_id>\d+)/$', open_get_element),
     url(r'^login/$', obtain_jwt_token)
 
 ]
