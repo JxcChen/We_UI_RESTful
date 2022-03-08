@@ -1,10 +1,9 @@
 import os
 import platform
+import re
 import sys
 import time
 import unittest
-from selenium import webdriver
-from selenium.webdriver.common.by import By
 
 # 导入utils包
 # from my_client.client_10.public.utils import *
@@ -16,42 +15,41 @@ else:
 
 try:
     from public.utils import *
+    from page.baidu.search_page import SearchPage
+    from page.app_start import App
 except:
     exec("from my_client.%s.public.utils import *" % file_path)
+    exec("from my_client.%s.page.baidu.search_page import *" % file_path)
+    exec("from my_client.%s.page.app_start import App" % file_path)
 
 
 class Test(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.driver = webdriver.Chrome()
-        cls.driver.maximize_window()
-        cls.driver.implicitly_wait(5)
-
+    search = App().start()
+    retry_num = 0
     @classmethod
     def tearDownClass(cls):
-        cls.driver.quit()
+        cls.search.driver.quit()
 
     def setUp(self):
-        util_get_index_page(self, host)
+        self.search.get_index_page(host)
 
     def tearDown(self, method_name='None'):
         if env == 'local':
             picture_name = "../report/picture/%s-%s.png" % (case_name, method_name)
         else:
             picture_name = "uiApp/static/res_picture/%s-%s.png" % (case_name, method_name)
-        self.driver.get_screenshot_as_file(picture_name)
+        self.search.get_screenshot(picture_name)
 
-    @util_retry_case(setUp, tearDown, retry_num)
+    # @util_retry_case(setUp, tearDown, retry_num)
     def test_01(self):
         '这里是用例描述'
-        search_input = (By.ID, "t")
-        self.driver.find_element(*search_input).send_keys("hello world")
+        self.search.search_key('pageObject')
+        time.sleep(10)
 
-    def test_02(self):
-        '这里是用例描述'
-        search_input = (By.ID, "kw")
-        self.driver.find_element(*search_input).send_keys("自动化")
+    # def test_02(self):
+    #     '这里是用例描述'
+    #     self.search.search_key2('pageObject2222')
+    #     time.sleep(10)
 
 
 if __name__ == '__main__':
@@ -62,9 +60,10 @@ if __name__ == '__main__':
         host = sys.argv[1]
         script_name = sys.argv[2]
         case_name = sys.argv[3]
-        retry_num = int(sys.argv[4])
+        Test.retry_num = int(sys.argv[4])
         env = "online"
-    except:
+    except Exception as e:
+        raise e
         # ====================== 本地调试需要手动输入以下内容 ======================
         # ======================       host:调试地址      ======================
         # ====================== script_name:当前脚本文件名称 ====================

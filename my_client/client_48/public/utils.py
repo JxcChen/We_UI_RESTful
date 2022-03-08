@@ -1,11 +1,13 @@
 import os
 import platform
+import time
 import unittest
 import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+
 operation = platform.system()
 if operation == 'Windows':
     file_path = str(__file__).split("\\")[-3]
@@ -82,6 +84,7 @@ def util_switch_to_window(self, tittle):
         else:
             break
 
+
 def util_wait_element_exist(self, loc):
     """
     显示等待到元素存在
@@ -90,13 +93,13 @@ def util_wait_element_exist(self, loc):
         ec.visibility_of_element_located(loc))
 
 
-
 def util_wait_element_clickable(self, loc):
     """
     显示等待到元素可点击
     """
     return WebDriverWait(self.driver, timeout=10).until(
         ec.element_to_be_clickable(loc))
+
 
 def util_get_element_text(self, loc):
     """
@@ -152,14 +155,16 @@ def util_retry_case(set_up, teardown, retry_num):
             for i in range(retry_num):
                 print('执行第' + str(i + 1) + '次')
                 try:
-                    res = case_method(**args)
+                    res = case_method(*arg, **args)
                     return res
-                except Exception:
+                except Exception as e:
+                    print('执行第i次')
+                    if i == retry_num - 1:
+                        raise e
                     # 执行后置前置
                     teardown(*arg)
                     set_up(*arg)
                     time.sleep(1)
-            raise Exception
 
         return wrapper
 

@@ -30,11 +30,20 @@ class ProjectListView(APIView):
     def get(self, request):
         query_data = request.query_params
         user_id = query_data['user_id']
-        pro_list = list(DB_pro_user.objects.filter(user_id=user_id).order_by('-update_time').values('pro_id'))
+
+        pro_list = list(
+            DB_pro_user.objects.filter(user_id=user_id).order_by('-update_time').values(
+                'pro_id'))
         res_list = []
         for project in pro_list:
-            pro = DB_project.objects.get(id=project['pro_id'])
-            res_list.append(pro)
+            try:
+                search_data = query_data['search_data']
+                pro = DB_project.objects.get(id=project['pro_id'])
+                if search_data in pro.name:
+                    res_list.append(pro)
+            except Exception as e:
+                pro = DB_project.objects.get(id=project['pro_id'])
+                res_list.append(pro)
         try:
             # 需要进行分页
             current_page = int(query_data['current_page'])
@@ -168,7 +177,12 @@ class CaseListView(APIView):
         request_data = request.query_params
         current_page = int(request_data['current_page'])
         page_size = int(request_data['page_size'])
-        case_set = DB_case.objects.filter(project_id=request_data['pro_id'])
+        # 根据是否存在查询数据进行数据返回
+        try:
+            search_data = request_data['search_data']
+            case_set = DB_case.objects.filter(project_id=request_data['pro_id'], name__contains=search_data)
+        except:
+            case_set = DB_case.objects.filter(project_id=request_data['pro_id'])
         cases = case_set.order_by('-update_time')[(current_page - 1) * page_size:current_page * page_size]
         count = case_set.count()
         res_list = CaseSerializers(instance=cases, many=True).data
@@ -468,7 +482,7 @@ def download(request, project_id):
     return response
 
 
-# 上传脚本视图
+# 上传调试包
 class UploadUtilsView(APIView):
     # 上传脚本
     def post(self, request, pro_id):
@@ -483,6 +497,35 @@ class UploadUtilsView(APIView):
         with open('my_client/client_%s/public/%s' % (pro_id, utils_file_name), 'wb') as f:
             for content in utils_file.chunks():
                 f.write(content)
+        return Response(return_json_data(1, '上传成功', ''), status=status.HTTP_201_CREATED)
+
+
+# 上传页面
+class UploadPagesView(APIView):
+    # 上传page
+    def post(self, request, pro_id):
+        # 先获取页面传回来的文件
+        page_file = request.data['file']
+        # 判断文件是否为空
+        if not page_file:
+            return Response(return_json_data(0, '未上传页面文件', ''), status=status.HTTP_400_BAD_REQUEST)
+        # 获取文件名称
+        page_file_name = str(page_file)
+        # 判断文件是否为python文件
+        if '.py' not in page_file_name and '.zip' not in page_file_name:
+            return Response(return_json_data(-1, '文件格式错误', ''), status=status.HTTP_400_BAD_REQUEST)
+        # 进行文件上传
+        zip_file_dir = "my_client/client_%s/page/%s" % (pro_id, page_file_name)
+        with open(zip_file_dir, 'wb') as f:
+            for content in page_file.chunks():
+                f.write(content)
+        # 如果是压缩文件则进行解压
+        if '.zip' in page_file_name:
+            out_put_dir = "my_client/client_%s/page/" % pro_id
+            from .utils.zip_utils import unzip_file
+            unzip_file(zip_file_dir, out_put_dir)
+            # 删除压缩包
+            os.remove(zip_file_dir)
         return Response(return_json_data(1, '上传成功', ''), status=status.HTTP_201_CREATED)
 
 
@@ -612,7 +655,12 @@ class PageListView(APIView):
     def get(self, request):
         request_data = request.query_params
         project_id = request_data['project_id']
-        all_page_list = DBPage.objects.filter(project_id=project_id)
+        # 根据是否存在查询数据进行数据返回
+        try:
+            search_data = request_data['search_data']
+            all_page_list = DBPage.objects.filter(project_id=project_id, name__contains=search_data)
+        except:
+            all_page_list = DBPage.objects.filter(project_id=project_id)
         try:
             # 请求分页数据
             page_size = int(request_data['page_size'])
@@ -676,7 +724,12 @@ class ElementListView(APIView):
         request_data = request.query_params
         current_page = int(request_data['current_page'])
         page_size = int(request_data['page_size'])
-        ele_list = DBElement.objects.filter(page_id=request_data['page_id'])
+        # 根据是否存在查询数据进行数据返回
+        try:
+            search_data = request_data['search_data']
+            ele_list = DBElement.objects.filter(page_id=request_data['page_id'], name__contains=search_data)
+        except:
+            ele_list = DBElement.objects.filter(page_id=request_data['page_id'])
         # 获取总数
         count = ele_list.count()
         # 获取分页数据
@@ -737,6 +790,22 @@ def open_get_element(request, element_id):
     try:
         ele = DBElement.objects.get(id=element_id)
     except:
-        return JsonResponse(return_json_data(-4, '该元素不存在', ''), status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(json.dumps(return_json_data(-4, '该元素不存在', '')), content_type="application/json")
     res = ElementSerializers(instance=ele).data
-    return HttpResponse(json.dumps(return_json_data(1,'成功',res)), content_type="application/json")
+    return HttpResponse(json.dumps(return_json_data(1, '成功', res)), content_type="application/json")
+
+
+# 修改元素
+def open_edit_element(request, element_id):
+    request_data = json.loads(request.body)
+    try:
+        ele = DBElement.objects.get(id=element_id)
+    except:
+        return HttpResponse(json.dumps(return_json_data(-4, '该元素不存在', '')), content_type="application/json")
+    request_data['name'] = ele.name
+    request_data['page_id'] = ele.page_id
+    serializer = ElementSerializers(data=request_data, instance=ele)
+    serializer.is_valid(raise_exception=True)
+    instance = serializer.save()
+    res = ElementSerializers(instance=instance).data
+    return HttpResponse(json.dumps(return_json_data(1, '成功', res)), content_type="application/json")

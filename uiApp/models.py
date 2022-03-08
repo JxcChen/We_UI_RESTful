@@ -105,6 +105,7 @@ class DBElement(models.Model):
     update_time = models.DateTimeField(auto_now=True)
     loc_method = models.CharField(max_length=20)
     index = models.IntegerField(default=0)
+    tag = models.CharField(max_length=1000,default='')
 
     def __str__(self):
         return self.name

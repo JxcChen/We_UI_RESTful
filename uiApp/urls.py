@@ -20,6 +20,7 @@ urlpatterns = [
     re_path(r'case/downloadclient/(?P<project_id>\d+)/', download),
     re_path(r'case/openMonitor/(?P<project_id>\d+)/', MonitorView.as_view()),
     url(r'^case/uploadUtils/(?P<pro_id>\d+)/$', UploadUtilsView.as_view()),
+    url(r'^case/uploadPages/(?P<pro_id>\d+)/$', UploadPagesView.as_view()),
     url(r'^notice/$', NoticeListView.as_view()),
     url(r'^notice/(?P<project_id>\d+)/$', NoticeDetailView.as_view()),
     url(r'^page/$', PageListView.as_view()),
@@ -27,6 +28,7 @@ urlpatterns = [
     url(r'^element/$', ElementListView.as_view()),
     url(r'^element/(?P<element_id>\d+)/$', ElementDetailView.as_view()),
     re_path(r'^open_get_element/(?P<element_id>\d+)/$', open_get_element),
+    re_path(r'^open_edit_element/(?P<element_id>\d+)/$', open_edit_element),
     url(r'^login/$', obtain_jwt_token)
 
 ]

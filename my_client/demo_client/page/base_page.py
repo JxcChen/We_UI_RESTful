@@ -1,3 +1,6 @@
+import os
+import re
+
 import requests
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
@@ -8,8 +11,10 @@ try:
     from public.HTMLTestRunner import HTMLTestRunner
     from public.auto_get_element import auto_get_element
 except:
-    exec('from my_client.%s.public.HTMLTestRunner import HTMLTestRunner' % file_path)
-    exec('from my_client.%s.public.auto_get_element import auto_get_element' % file_path)
+    dir_path = os.path.dirname(__file__)
+    path = re.search('my_client/client_\d+', dir_path).group().replace('/', '.')
+    exec('from %s.public.HTMLTestRunner import HTMLTestRunner' % path)
+    exec('from %s.public.auto_get_element import auto_get_element' % path)
 
 
 class BasePage:
@@ -29,10 +34,10 @@ class BasePage:
         return self.driver.find_element(*loc)
 
     def click_ele(self, loc):
-        self.get_element(self, loc).click()
+        self.get_element(loc).click()
 
-    def util_send_key(self, loc, value):
-        self.get_element(self, loc).send_keys(value)
+    def send_key(self, loc, value):
+        self.get_element(loc).send_keys(value)
 
     def switch_to_frame(self, frame_loc):
         """
@@ -85,8 +90,19 @@ class BasePage:
         return self.driver.find_element(*loc).get_attribute(attr_name)
 
     # 通过获取定位器接口获取定位器  并进行定位返回元素
+    def open_get_element(self, loc_id):
+        loc_dict = self.open_get_loc(loc_id)
+        locator = loc_dict['locator']
+        index = loc_dict['index']
+        try:
+            ele = self.driver.find_elements(*locator)[index]
+        except Exception as e:
+            ele = auto_get_element(self.driver, loc_dict['res'])
+        return ele
+
+    # 通过获取定位器接口获取定位器  并进行定位返回定位
     @staticmethod
-    def util_get_element(self, loc_id):
+    def open_get_loc(loc_id):
         if loc_id == '' or loc_id == ' ' or loc_id is None:
             return None
         res = requests.get("http://127.0.0.1:8001/api/open_get_element/%s/" % int(loc_id)).json()
@@ -105,8 +121,8 @@ class BasePage:
             locator = (By.XPATH, loc)
         elif 'tag' in method:
             locator = (By.TAG_NAME, loc)
-        try:
-            ele = self.driver.find_elements(*locator)[index]
-        except Exception as e:
-            ele = auto_get_element(self.driver, res)
-        return ele
+        return {'locator': locator, 'index': index, 'res': data}
+
+    # 获取测试首页
+    def get_screenshot(self, picture_name):
+        self.driver.get_screenshot_as_file(picture_name)

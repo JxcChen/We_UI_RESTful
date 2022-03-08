@@ -1,6 +1,7 @@
 """
 自动维护元素定位  当元素定位失败时会执行auto_get_element
 """
+import json
 import re
 
 import requests
@@ -74,7 +75,6 @@ def auto_get_element(driver: Chrome, loc_dict):
     now_score = 0
     highest_score = 0
     # 2.1 遍历获取到的元素集
-    print(get_similarity_score('name', 'name'))
     for i in range(len(tag_elements)):
         now_score: float = 0.0
         new_id = tag_elements[i].get_attribute('id')
@@ -108,7 +108,11 @@ def auto_get_element(driver: Chrome, loc_dict):
 
     # 3 将最新的tag数据进行返回 (进行调用接口进行更新)
     loc_id = str(loc_dict['id'])
-    loc_dict = {'tmp_method': 'tag name', 'tmp_value': old_tag_name, 'tag': target_tag.get_attribute('outerHTML'),
-                'index': target_index}
-    res = requests.post(url='http://127.0.0.1:8000/open_edits_locator/%s/' % loc_id, data=loc_dict)
+    loc_dict = {'loc_method': 'tag name',
+                'element_location': old_tag_name,
+                'tag': target_tag.get_attribute('outerHTML'),
+                'index': target_index
+                }
+    res = requests.post(url='http://127.0.0.1:8001/api/open_edit_element/%s/' % loc_id, data=json.dumps(loc_dict),
+                        headers={'content-type': 'application/json'})
     return target_tag
